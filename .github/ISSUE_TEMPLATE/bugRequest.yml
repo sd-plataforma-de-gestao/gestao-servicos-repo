@@ -1,0 +1,38 @@
+name: "👾 BUG | FIX"
+description: "Requisição de correção"
+title: "Fix: "
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "Descrição do bug no projeto"
+      description: "Uma descrição breve e objetiva da tarefa a ser realizada."
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: "Quando necessário screenshot do erro."
+      description: "Em caso de alterações visuais, se possível, adicionar uma screenshot."
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-information
+    attributes:
+      label: "Observação"
+      description: "Coisas que deverão ser consideradas durante a atividade. Impedimentos, bloqueios e dificuldades."
+
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Checklist
+      options:
+        - label: O bug foi previamente comunicado com o grupo.
+          required: true
+        - label: Eu atualizarei as dependências de acordo com as alterações.
+          required: true
+        - label: Eu testarei para que as alterações não interfiram nas demais partes do projeto.
+          required: true
