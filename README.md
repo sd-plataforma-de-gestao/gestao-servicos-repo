@@ -1,10 +1,10 @@
-# 💊 Sistema de Gestão Clínica e Farmacêutica
+# Sistema de Gestão Clínica e Farmacêutica
 
-## 📖 Sobre o Projeto
+## Sobre o Projeto
 Este sistema foi desenvolvido como parte do **Projeto Integrador** do curso de **Inteligência Artificial** na matéria **Projeto Integrador**.  
 O objetivo principal é facilitar o gerenciamento de atendimentos clínicos e do estoque de medicamentos em farmácias e clínicas, oferecendo uma plataforma simples, segura e funcional.
 
-## 🎯 Funcionalidades (possíveis)
+## Funcionalidades (possíveis)
 - Cadastro de pacientes
 - Marcação e gerenciamento de consultas
 - Controle de estoque de medicamentos
@@ -12,10 +12,10 @@ O objetivo principal é facilitar o gerenciamento de atendimentos clínicos e do
 - Login com diferentes perfis (admin, farmacêutico, recepcionista)
 - Geração de relatórios básicos
 
-## 🧠 Público-alvo
+## Público-alvo
 Clínicas populares, farmácias com serviço clínico e profissionais da saúde que desejam centralizar informações e melhorar a organização dos atendimentos.
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 > *As tecnologias ainda podem ser ajustadas conforme o progresso da equipe.*
 
 - **Frontend**:
