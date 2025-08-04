@@ -1,0 +1,38 @@
+name: "💡 Requisição de Tarefa"
+description: "Implementação de funcionalidade"
+title: "Feat: "
+body:
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição de tarefa
+      description: Uma descrição breve e objetiva da tarefa a ser realizada.
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Descrição de casos de uso
+      description: Uma descrição breve e objetiva dos casos de uso.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives-considered
+    attributes:
+      label: Requisitos atendidos
+      description: Listar os requisitos que serão atendidos.
+
+  - type: textarea
+    id: related-code
+    attributes:
+      label: Regras de negócio
+      description: Listar regras de negócio da aplicação.
+
+  - type: textarea
+    id: additional-information
+    attributes:
+      label: Observação
+      description: Coisas que deverão ser consideradas durante a atividade. Impedimentos, bloqueios e dificuldades.
