@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relatório Farmacêutico - PharmaGest</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/pdf.css">
+  
+     
+  
+</head>
+<body class="p-4">
+
+  <div id="conteudoPDF">
+    <div class="header">
+      <div class="logo">
+        <i class="bi bi-capsule"></i> PharmaGest
+      </div>
+      <div class="subtitle">Relatório de Atendimento Farmacêutico</div>
+      <div><strong>Unidade:</strong> A - 01.234.567/0001-89 | <strong>Data:</strong> 14 de Agosto de 2025</div>
+    </div>
+
+    <h4>📊 Resumo do Dia</h4>
+    <div class="row g-3">
+      <div class="col-3"><div class="card-metric">23<small>Atendimentos</small></div></div>
+      <div class="col-3"><div class="card-metric">14<small>Crônicos</small></div></div>
+      <div class="col-3"><div class="card-metric">9<small>Agudos</small></div></div>
+      <div class="col-3"><div class="card-metric">100%<small>Concluídos</small></div></div>
+    </div>
+
+    <h4>🩺 Acompanhamento de Pacientes Crônicos</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>Paciente</th>
+          <th>Condição</th>
+          <th>IMC</th>
+          <th>Observações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Maria Silva</td>
+          <td>Hipertensão</td>
+          <td>26,4 (Sobrepeso)</td>
+          <td>Pressão controlada, orientações não farmacológicas reforçadas.</td>
+        </tr>
+        <tr>
+          <td>Ana Costa</td>
+          <td>Diabetes Tipo 2</td>
+          <td>28,1 (Sobrepeso)</td>
+          <td>Glicemia em 142 mg/dL. Sugestão de ajuste de dieta.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4>🤒 Atendimentos de Condições Agudas</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>Paciente</th>
+          <th>Queixa Principal</th>
+          <th>Prescrição Sugerida</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>João Santos</td>
+          <td>Sintomas de gripe (febre, tosse)</td>
+          <td>Paracetamol 750mg c/12h + Repouso</td>
+          <td><span class="badge bg-success">Concluído</span></td>
+        </tr>
+        <tr>
+          <td>Carlos Lima</td>
+          <td>Dor de cabeça persistente</td>
+          <td>Ibuprofeno 400mg c/8h + Hidratação</td>
+          <td><span class="badge bg-success">Concluído</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4>💡 Insights e Recomendações</h4>
+    <div class="highlight">
+      <p><strong>• Alta carga de pacientes com sobrepeso:</strong> 70% dos pacientes crônicos estão acima do peso ideal. Reforçar orientações sobre alimentação e atividade física.</p>
+      <p><strong>• Pico de atendimentos agudos na terça-feira:</strong> Planejar reforço de equipe ou horários estendidos.</p>
+      <p><strong>• Eficácia da orientação não farmacológica:</strong> 85% dos pacientes relataram melhora após intervenções comportamentais.</p>
+    </div>
+
+    <div class="signature">
+      <p>Atenciosamente,</p>
+      <p><strong>Dr. Farmacêutico</strong><br>
+      CRF-SP 12345<br>
+      Assinatura Digital: <code>PHG-2025-8A3F</code></p>
+    </div>
+
+    <div class="footer">
+      <p>Este relatório foi gerado automaticamente pelo sistema <strong>PharmaGest</strong>.</p>
+      <p>LGPD Compliant | Confidencialidade garantida | Sistema validado com base nos protocolos do CFF e Ministério da Saúde.</p>
+    </div>
+  </div>
+
+  <!-- Botão Gerar PDF - Com Animação -->
+  <button id="btnPDF" class="btn-export">
+    <i class="bi bi-download me-2"></i> Gerar Relatório PDF
+  </button>
+
+  <!-- Bibliotecas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script src="js/pdf.js">
+    
+  </script>
+</body>
+</html>

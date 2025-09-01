@@ -1,0 +1,136 @@
+body {
+  background-color: #f4f0e6;
+  font-family: 'Segoe UI', sans-serif;
+  color: #2e3a2f;
+}
+
+.sidebar {
+  min-height: 100vh;
+  background-color: #0d6e38;
+  color: white;
+  padding: 1rem 0;
+}
+
+.sidebar .nav-link {
+  color: #e7f5e0;
+  font-size: 0.9rem;
+  padding: 0.6rem 1rem;
+}
+
+.sidebar .nav-link.active,
+.sidebar .nav-link:hover {
+  background-color: #2e3a2f;
+  border-radius: 0.5rem;
+}
+
+header {
+  background: #fdf5e6;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.7rem 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.card {
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+}
+
+.card-body {
+  padding: 1rem;
+}
+
+.card-title {
+  font-size: 0.9rem;
+  color: #0d6e38;
+  margin-bottom: 0.5rem;
+}
+
+.metric-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #2e3a2f;
+}
+
+.metric-change {
+  font-size: 0.8rem;
+  color: #28a745;
+}
+
+.btn-primary {
+  background-color: #0d6e38;
+  border-color: #0d6e38;
+}
+
+.btn-primary:hover {
+  background-color: #2e3a2f;
+}
+
+.btn-outline-primary {
+  background-color: transparent;
+  border-color: #0d6e38;
+  color: #0d6e38;
+}
+
+.btn-outline-primary:hover {
+  background-color: #0d6e38;
+  color: white;
+}
+
+.chart-container {
+  height: 100%;
+  width: 100%;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.chart-wrapper-pie {
+  width: 160px;
+  height: 160px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.insight-card {
+  background-color: #e7f5e0;
+  border-left: 4px solid #0d6e38;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.insight-value {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #0d6e38;
+}
+
+.insight-label {
+  font-size: 0.8rem;
+  color: #556b2f;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 1rem;
+  text-align: center;
+}
+
+.sidebar-footer p {
+  color: #e7f5e0;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.sidebar-footer .btn {
+  width: 100%;
+  font-size: 0.85rem;
+}

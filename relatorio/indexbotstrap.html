@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PharmaGest - Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="css/index.css">
+</head>
+
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Sidebar -->
+      <nav class="col-md-2 d-none d-md-block sidebar">
+        <div class="d-flex align-items-center mb-4 px-3">
+          <i class="bi bi-capsule me-2 fs-4"></i>
+          <h5 class="mb-0 text-white">PharmaGest</h5>
+        </div>
+        <ul class="nav flex-column">
+          <li class="nav-item"><a class="nav-link active" href="#"><i class="bi bi-grid me-2"></i>Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="atendimento-cronico.html"><i class="bi bi-heart-pulse me-2"></i>At. Crônico</a></li>
+          <li class="nav-item"><a class="nav-link" href="atendimento-agudo.html"><i class="bi bi-thermometer me-2"></i>At. Agudo</a></li>
+          <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-clock-history me-2"></i>Histórico</a></li>
+          <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-bar-chart-line me-2"></i>Relatórios</a></li>
+        </ul>
+
+        <!-- Filtros -->
+        <div class="filters mt-4 p-3 bg-dark text-white rounded">
+          <h6>Filtrar por Unidade</h6>
+          <select class="form-select form-select-sm mb-2" id="filterUnidade">
+            <option value="1">Unidade A - 01.234.567/0001-89</option>
+            <option value="2">Unidade B - 01.234.567/0002-60</option>
+            <option value="3">Unidade C - 01.234.567/0003-41</option>
+            <option value="4">Unidade D - 01.234.567/0004-22</option>
+          </select>
+          <h6>Filtrar por Período</h6>
+          <select class="form-select form-select-sm" id="filterPeriodo">
+            <option>Semana</option>
+            <option>Mês</option>
+            <option>Ano</option>
+          </select>
+        </div>
+
+        <!-- Botão Sair -->
+        <div class="sidebar-footer">
+          <p>Dr. Farmacêutico<br><small>CRF 12345-SP</small></p>
+          <a href="#" class="btn btn-danger btn-sm">Sair</a>
+        </div>
+      </nav>
+
+      <!-- Main -->
+      <main class="col-md-10 ms-sm-auto px-md-4">
+        <!-- Header -->
+        <header class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>Relatórios e Insights</h5>
+          <div class="d-flex gap-2">
+            <a href="teste_pdf.html" target="_blank" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-file-pdf me-1"></i> Exportar PDF
+            </a>
+            <button class="btn btn-primary btn-sm"><i class="bi bi-download me-1"></i> Gerar Relatório</button>
+            <a href="atendimento.html" class="btn btn-success btn-sm">
+              <i class="bi bi-person-plus me-1"></i> Novo Atendimento
+            </a>
+          </div>
+        </header>
+
+        <!-- Métricas Top -->
+        <div class="row g-3 mt-3">
+          <div class="col-md-3 col-6">
+            <div class="card">
+              <div class="card-body">
+                <div class="card-title">Total de Atendimentos</div>
+                <div class="metric-value">1.247</div>
+                <div class="metric-change">+12% vs mês anterior</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="card">
+              <div class="card-body">
+                <div class="card-title">Este Mês</div>
+                <div class="metric-value">421</div>
+                <div class="metric-change">+8% vs mês anterior</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="card">
+              <div class="card-body">
+                <div class="card-title">Média Diária</div>
+                <div class="metric-value">18</div>
+                <div class="metric-change">+5% vs mês anterior</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="card">
+              <div class="card-body">
+                <div class="card-title">Taxa de Conclusão</div>
+                <div class="metric-value">94%</div>
+                <div class="metric-change">+2% vs mês anterior</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gráficos principais -->
+        <div class="row g-3 mt-4">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-body">
+                <div class="card-title"><i class="bi bi-calendar me-1"></i> Atendimentos da Semana</div>
+                <canvas id="chartSemana" class="chart-container"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-body">
+                <div class="card-title"><i class="bi bi-pie-chart me-1"></i> Distribuição por Condição</div>
+                <div class="chart-wrapper-pie">
+                  <canvas id="chartCondicoes" class="chart-container"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3 mt-4">
+          <div class="col-md-8">
+            <div class="card">
+              <div class="card-body">
+                <div class="card-title"><i class="bi bi-trend-up me-1"></i> Tendência Mensal</div>
+                <canvas id="chartTendencia" class="chart-container"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-body">
+                <div class="card-title"><i class="bi bi-list-task me-1"></i> Condições Mais Atendidas</div>
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Hipertensão <span class="badge bg-success rounded-pill">35%</span>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Diabetes <span class="badge bg-info rounded-pill">25%</span>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Asma <span class="badge bg-warning rounded-pill">12%</span>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Gripe/Resfriado <span class="badge bg-danger rounded-pill">12%</span>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Dor de Cabeça <span class="badge bg-secondary rounded-pill">8%</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Insights -->
+        <div class="row g-3 mt-4">
+          <div class="col-md-4">
+            <div class="insight-card">
+              <div class="insight-value">18 min</div>
+              <div class="insight-label">Tempo médio por atendimento</div>
+              <div class="metric-change">-2 min vs anterior</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="insight-card">
+              <div class="insight-value">94%</div>
+              <div class="insight-label">Taxa de satisfação</div>
+              <div class="metric-change">+1% vs anterior</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="insight-card">
+              <div class="insight-value">3.2</div>
+              <div class="insight-label">Medicamentos por prescrição</div>
+              <div class="metric-change">Estável</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-info text-center mt-4">
+          <p class="text-muted small">Sistema de Gestão Farmacêutica | PharmaGest © 2025 | LGPD Compliant</p>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/index.js"></script>
+</body>
+
+</html>
