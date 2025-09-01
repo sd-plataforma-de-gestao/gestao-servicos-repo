@@ -10,6 +10,8 @@ new Chart(document.getElementById('chartSemana'), {
     }]
   },
   options: {
+    responsive: true,
+    maintainAspectRatio: false,
     scales: {
       y: { beginAtZero: true }
     }
@@ -50,6 +52,8 @@ new Chart(document.getElementById('chartTendencia'), {
     }]
   },
   options: {
+    responsive: true,
+    maintainAspectRatio: false,
     scales: {
       y: { beginAtZero: true }
     }

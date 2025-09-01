@@ -87,14 +87,34 @@ header {
 }
 
 .chart-container {
-  height: 100%;
   width: 100%;
+  height: 100%;
   border-radius: 0.5rem;
   overflow: hidden;
 }
 
+/* Wrapper para gráfico de barras */
+.chart-wrapper-bar {
+  width: 100%;
+  height: 160px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Wrapper para gráfico de pizza */
 .chart-wrapper-pie {
-  width: 160px;
+  width: 140px;
+  height: 160px; /* Igual ao bar chart */
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Wrapper para gráfico de linha */
+.chart-wrapper-line {
+  width: 100%;
   height: 160px;
   margin: 0 auto;
   position: relative;
