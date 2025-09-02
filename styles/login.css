@@ -4,7 +4,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: var(--secondary-color);
+            background-color:#fffaf7;
         }
         
         .login-container {
@@ -40,7 +40,7 @@
         }
         
         .logo-full {
-            width: 100px; /* Ajuste o tamanho conforme necessário */
+            width: 200px; /* Ajuste o tamanho conforme necessário */
             height: auto;
             margin-bottom: var(--spacing-sm);
         }
@@ -56,7 +56,7 @@
         h1.login-title {
             font-size: var(--font-size-2xl);
             font-weight: 600;
-            color: var(--text-primary);
+            color: var(--primary-color);
             margin-bottom: var(--spacing-sm);
         }
 
@@ -64,6 +64,7 @@
             font-size: var(--font-size-base);
             color: var(--text-secondary);
             margin-bottom: var(--spacing-lg);
+            color: var("--secondary-color:");
         }
         
         .form-group {
@@ -101,6 +102,7 @@
             cursor: pointer;
             border: none;
             border-radius: var(--border-radius-sm);
+            color: var("--secondary-color:");
         }
 
         .copyright {
