@@ -1,12 +1,9 @@
-Sistema de Gestão de Serviços
-<p align="center">
-<img src="https://i.imgur.com/2Yc6Y9b.png" alt="Logo do projeto" width="300"/>
-</p>
+## Sistema de Gestão de Serviços
 
-Sobre o Projeto
+# Sobre o Projeto
 O Sistema de Gestão de Serviços é uma plataforma desenvolvida para otimizar e centralizar o gerenciamento de tarefas, ordens de serviço e recursos em empresas. O projeto, que atualmente conta com as telas de Home e Login, está em fase de implementação para se tornar uma solução robusta e completa.
 
-🚀 Tecnologias Utilizadas
+# 🚀 Tecnologias Utilizadas
 Este projeto está sendo construído com as seguintes tecnologias:
 
 Front-end: HTML5 e CSS3
@@ -17,7 +14,7 @@ Banco de Dados: MySQL
 
 Controle de Versão: Git e GitHub
 
-⚙️ Como Executar o Projeto
+# ⚙️ Como Executar o Projeto
 Para rodar o projeto localmente, siga os passos abaixo:
 
 Clone o repositório:
@@ -36,13 +33,10 @@ O projeto ainda está em desenvolvimento, e a conexão com o banco de dados ser�
 
 Acesse a aplicação:
 
-Abra seu navegador e acesse http://localhost/gestao-servicos-repo.
+Rode pelo live server (extensão do VSCode)
 
-🤝 Contribuições
+# 🤝 Contribuições
 Contribuições são sempre bem-vindas! Se você deseja colaborar com o projeto, sinta-se à vontade para abrir uma issue ou um pull request.
 
-📝 Licença
-Este projeto está sob a licença MIT License.
-
-📧 Contato
+# 📧 Contato
 Para mais informações, entre em contato através do repositório ou por meio dos perfis dos membros da equipe.
