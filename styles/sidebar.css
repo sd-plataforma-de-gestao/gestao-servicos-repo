@@ -62,6 +62,7 @@
 .sidebar-link.active {
   background-color: var(--primary-color);
   color: white;
+  border-radius: 15px;
   text-decoration: none;
 }
 
