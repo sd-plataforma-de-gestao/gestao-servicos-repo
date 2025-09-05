@@ -202,3 +202,16 @@ a:hover {
   flex: unset !important;
   min-height: unset !important;
 }
+
+.page-title {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-sm);
+}
+
+.page-subtitle {
+  color: var(--text-secondary);
+  margin-bottom: 0;
+  font-size: var(--font-size-base);
+}
