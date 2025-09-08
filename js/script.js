@@ -382,23 +382,18 @@ function debounce(func, wait) {
     };
 }
 
-// Aguarda o carregamento completo do DOM
-document.addEventListener('DOMContentLoaded', () => {
+function setActiveSidebarLink() {
+  const currentPage = window.location.pathname.split("/").pop();
 
-  // Seleciona o botão de menu pelo ID no header
-  const menuToggle = document.getElementById('menu-toggle');
-  
-  // Seleciona a sidebar pelo ID
-  const sidebar = document.getElementById('sidebar');
+  const sidebarLinks = document.querySelectorAll(".sidebar-link");
 
-  // Adiciona um evento de clique ao botão de menu
-  if (menuToggle && sidebar) {
-    menuToggle.addEventListener('click', () => {
-      // Alterna a classe 'active' na sidebar
-      sidebar.classList.toggle('active');
-    });
-  } else {
-    console.error('Um ou mais elementos não foram encontrados.');
-  }
+  sidebarLinks.forEach(link => {
+    const linkPage = link.getAttribute("href").split("/").pop();
 
-});
+    if (linkPage === currentPage) {
+      link.classList.add("active");
+    } else {
+      link.classList.remove("active");
+    }
+  });
+}
