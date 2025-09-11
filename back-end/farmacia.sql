@@ -19,7 +19,8 @@ SET time_zone = "+00:00";
 
 --
 -- Banco de dados: `farmacia`
---
+CREATE DATABASE IF NOT EXISTS `farmacia` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `farmacia`;
 
 -- --------------------------------------------------------
 
