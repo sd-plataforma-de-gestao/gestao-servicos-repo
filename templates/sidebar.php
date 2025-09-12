@@ -7,7 +7,7 @@
   
   <ul class="sidebar-nav">
     <li class="sidebar-item">
-      <a href="/index.html" class="sidebar-link active">
+      <a href="/index.php" class="sidebar-link active">
         <i class="fas fa-home"></i>
         <span>Início</span>
       </a>
@@ -29,17 +29,17 @@
     </li>
     
     <li class="sidebar-item">
-      <a href="/templates/paciente.html" class="sidebar-link">
+      <a href="/templates/paciente.php" class="sidebar-link">
         <i class="fas fa-users"></i>
         <span>Pacientes</span>
       </a>
     </li>
 
      <li class="sidebar-item">
-      <a href="/templates/farmaceutico.html" class="sidebar-link">
+      <a href="/templates/farmaceutico.php" class="sidebar-link">
         <i class="fas fa-users"></i>
         <span>Farmacêuticos</span>
-      </a>
+      </a>  
     </li>
     
     <li class="sidebar-item">
