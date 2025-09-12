@@ -1,0 +1,289 @@
+/* ===== PÁGINA DE MEDICAMENTOS ===== */
+.medicamentos-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.page-title {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-sm);
+}
+
+.page-subtitle {
+  color: var(--text-secondary);
+  margin-bottom: 0;
+  font-size: var(--font-size-base);
+}
+
+/* ===== CONTROLES: BUSCA E FILTRO ===== */
+.controls-bar {
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-lg);
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.controls-bar .form-label {
+  font-size: var(--font-size-sm);
+  color: #555;
+  margin-bottom: var(--spacing-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.controls-bar .form-label i {
+  color: #6c757d;
+  font-size: 0.9em;
+}
+
+/* ===== LISTA DE MEDICAMENTOS ===== */
+.medicamentos-list {
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-lg);
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.list-title {
+  font-size: var(--font-size-xl);
+  font-weight: bold;
+  margin-bottom: var(--spacing-sm);
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+/* ===== CARD DE MEDICAMENTO ===== */
+.medicamento-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.medicamento-card:last-child {
+  border-bottom: none;
+}
+
+.medicamento-card:hover {
+  background-color: #f9f9f9;
+}
+
+.medicamento-info {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+}
+
+.icon-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  font-size: 1.2rem;
+}
+
+.medicamento-info > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.medicamento-info strong {
+  font-size: var(--font-size-base);
+  color: #333;
+}
+
+.medicamento-info p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: #6c757d;
+}
+
+.medicamento-info small {
+  font-size: var(--font-size-xs);
+  color: #adb5bd;
+}
+
+/* ===== AÇÕES DO CARD ===== */
+.medicamento-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+/* ===== STATUS BADGE ===== */
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+.status-badge.disponivel {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-badge.baixo {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.esgotado {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.status-badge.vencido {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.status-badge.sem-status {
+  background-color: #f8f9fa;
+  color: #6c757d;
+}
+
+/* ===== BOTÕES DE AÇÃO ===== */
+.btn-detalhes {
+  background: none;
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btn-detalhes:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 768px) {
+  .medicamento-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+  
+  .medicamento-info {
+    width: 100%;
+  }
+  
+  .medicamento-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .controls-bar .row {
+    gap: var(--spacing-sm);
+  }
+  
+  .controls-bar .col-12.col-md-2 {
+    order: -1;
+  }
+}
+
+/* ===== ESTILOS ADICIONAIS PARA MEDICAMENTOS ===== */
+.medicamento-dosagem {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.medicamento-lote {
+  font-family: monospace;
+  background-color: #f8f9fa;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: var(--font-size-xs);
+}
+
+.medicamento-validade {
+  color: var(--text-muted);
+}
+
+.medicamento-validade.vencendo {
+  color: var(--warning-color);
+  font-weight: 600;
+}
+
+.medicamento-validade.vencido {
+  color: var(--danger-color);
+  font-weight: 600;
+}
+
+/* ===== MODAL CUSTOMIZATIONS ===== */
+.modal-body textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.modal-body .form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(26, 109, 64, 0.25);
+}
+
+/* ===== LOADING STATE ===== */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid var(--primary-color);
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--text-secondary);
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: var(--spacing-md);
+  opacity: 0.5;
+}
+
+.empty-state h4 {
+  margin-bottom: var(--spacing-sm);
+  color: var(--text-primary);
+}
+
+.empty-state p {
+  margin-bottom: 0;
+}
+
