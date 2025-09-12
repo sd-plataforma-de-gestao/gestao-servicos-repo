@@ -1,0 +1,136 @@
+/* Estilos específicos para a página de relatórios e insights */
+
+/* Cards de Insights */
+.insights-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.insights-card .card-content {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg);
+}
+
+.insights-card .card-title {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-xs);
+}
+
+.insights-card .card-value {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--text-primary);
+     max-height: 400px;
+
+}
+
+.insights-card .icon-circle {
+    box-shadow: var(--shadow-sm);
+}
+
+/* Cores de ícones dos cards */
+.insights-card #card-novos-clientes .icon-circle { color: var(--success-color); }
+.insights-card #card-media-venda .icon-circle { color: var(--warning-color); }
+.insights-card #card-produtos-vendidos .icon-circle { color: var(--text-info); } /* 'text-info' não está no global.css, você pode adicionar ou usar uma cor existente */
+/* Exemplo de adição: --text-info: #0d6efd; no root do global.css */
+
+
+/* Seção de Gráficos */
+.charts-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.chart-card {
+    padding: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.chart-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+    text-align: center;
+}
+
+/* Tabela de Relatórios */
+.reports-table-container {
+    overflow-x: auto;
+}
+
+.reports-table-container .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg) var(--spacing-lg) 0;
+}
+
+.reports-table-container .card-title-header {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.reports-table-container .card-actions button {
+    margin-left: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--primary-color);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+}
+
+.reports-table-container .card-body {
+    padding: var(--spacing-lg);
+}
+
+.reports-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.reports-table th, .reports-table td {
+    text-align: left;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.reports-table th {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+}
+
+.reports-table tbody tr:hover {
+    background-color: var(--secondary-color);
+}
+
+/* Status da tabela */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: white;
+}
+
+.status-concluido { background-color: var(--success-color); }
+.status-pendente { background-color: var(--warning-color); }
+.status-cancelado { background-color: var(--danger-color); }
+
+/* Adaptações para telas menores */
+@media (max-width: 768px) {
+    .insights-cards-container, .charts-container {
+        grid-template-columns: 1fr;
+    }
+}
