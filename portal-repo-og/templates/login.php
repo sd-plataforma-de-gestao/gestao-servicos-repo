@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Vitally</title>
+    <link rel="stylesheet" href="/styles/global.css">
+    <link rel="stylesheet" href="/styles/login.css">
+    <link rel="icon" href="/assets/favicon.png" type="image/png">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-left">
+            <img src="/assets/logo-login.png" alt="Logo Vitally" class="logo-full">
+        </div>
+        <div class="login-right">
+            <h1 class="login-title">Seja bem-vindo(a) à Vitally!</h1>
+            <p class="login-subtitle">Acesse sua conta para continuar</p>
+            <div style="width: 100%;">
+                <div class="form-group">
+                    <label for="CRF">CRF:</label>
+                    <input type="int" id="CRF" name="CRF" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="senha">Senha:</label>
+                    <input type="password" id="senha" name="senha" class="form-control" required>
+                </div>
+                <div class="form-links">
+                    <a href="#" class="text-primary">Cadastre-se</a>
+                    <a href="#" class="text-primary">Esqueceu sua senha?</a>
+                </div>
+                <button type="submit" class="btn-primary-custom btn-login">Entrar</button>
+            </div>
+            <p class="copyright">© 2025 Vitally. Todos os direitos reservados.</p>
+        </div>
+    </div>
+
+    <script src="/js/login.js"></script>
+</body>
+</html>
