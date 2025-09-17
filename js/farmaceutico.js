@@ -1,26 +1,9 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const formPaciente = document.querySelector("#pacienteModal form");
-    const pacienteModalElement = document.getElementById("pacienteModal");
+    const formFarmaceutico = document.querySelector("#farmaceuticoModal form");
+    const farmaceuticoModalElement = document.getElementById("farmaceuticoModal");
     const listaPacientes = document.getElementById("lista-pacientes");
 
-    if (!formPaciente || !listaPacientes) return;
-
-    // Carrega header e sidebar
-    fetch('/templates/header.php')
-        .then(r => r.text())
-        .then(html => {
-            const container = document.getElementById('header-container');
-            if (container) container.innerHTML = html;
-        })
-        .catch(() => {});
-
-    fetch('/templates/sidebar.php')
-        .then(r => r.text())
-        .then(html => {
-            const container = document.getElementById('sidebar-container');
-            if (container) container.innerHTML = html;
-        })
-        .catch(() => {});
+    if (!formFarmaceutico || !listaPacientes) return;
 
     // Função para recarregar APENAS a lista
     function recarregarLista() {
@@ -29,22 +12,26 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(html => {
                 listaPacientes.innerHTML = html;
             })
-            .catch(err => console.error("Erro ao recarregar lista:", err));
+            .catch(err => {
+                console.error("Erro ao recarregar lista:", err);
+                listaPacientes.innerHTML = '<p class="text-danger">Erro ao carregar a lista. Tente novamente.</p>';
+            });
     }
 
     // Evento de submit
-    formPaciente.addEventListener("submit", function (e) {
+    formFarmaceutico.addEventListener("submit", function (e) {
         e.preventDefault();
 
-        const btn = formPaciente.querySelector('[type="submit"][name="salvar"]');
+        const btn = formFarmaceutico.querySelector('[type="submit"]');
         if (btn.disabled) return;
 
         btn.disabled = true;
+        const originalText = btn.innerHTML;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
 
-        const formData = new FormData(formPaciente);
+        const formData = new FormData(formFarmaceutico);
 
-        fetch(window.location.pathname, {
+        fetch('farmaceutico.php', {
             method: "POST",
             body: formData,
             headers: { "X-Requested-With": "XMLHttpRequest" }
@@ -52,27 +39,23 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => response.text())
         .then(result => {
             if (result.trim() === "success") {
-                // Fecha modal
-                const modal = bootstrap.Modal.getInstance(pacienteModalElement);
+                const modal = bootstrap.Modal.getInstance(farmaceuticoModalElement);
                 if (modal) modal.hide();
-
-                // Limpa formulário
-                formPaciente.reset();
-
-                // Recarrega lista
+                formFarmaceutico.reset();
                 recarregarLista();
-
                 alert("✅ Farmacêutico cadastrado com sucesso!");
             } else {
-                alert("❌ Erro ao cadastrar. Tente novamente.");
+                alert("❌ " + result.replace("error: ", ""));
             }
         })
-        .catch(() => alert("⚠️ Erro de conexão."))
+        .catch(() => {
+            alert("⚠️ Erro de conexão. Verifique sua internet.");
+        })
         .finally(() => {
             setTimeout(() => {
                 if (btn) {
                     btn.disabled = false;
-                    btn.innerHTML = "Salvar Farmacêutico";
+                    btn.innerHTML = originalText;
                 }
             }, 500);
         });

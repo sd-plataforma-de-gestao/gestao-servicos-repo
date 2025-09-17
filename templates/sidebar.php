@@ -29,14 +29,14 @@
     </li>
     
     <li class="sidebar-item">
-      <a href="/templates/paciente.php" class="sidebar-link">
+      <a href="/portal-repo-og/templates/paciente.php" class="sidebar-link">
         <i class="fas fa-users"></i>
         <span>Pacientes</span>
       </a>
     </li>
 
      <li class="sidebar-item">
-      <a href="/templates/farmaceutico.php" class="sidebar-link">
+      <a href="/portal-repo-og/templates/farmaceutico.php" class="sidebar-link">
         <i class="fas fa-users"></i>
         <span>Farmacêuticos</span>
       </a>  

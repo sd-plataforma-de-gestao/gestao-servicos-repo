@@ -19,7 +19,11 @@ SET time_zone = "+00:00";
 --
 -- Banco de dados: `farmacia`
 --
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> aebba10 (add: adicionando cadastro do farmaceutico e paciente)
 -- --------------------------------------------------------
 
 --

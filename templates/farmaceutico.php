@@ -1,50 +1,92 @@
-<?php include("../config/database.php"); ?>
-
 <?php
-// Endpoint para carregar apenas a lista via AJAX
-if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
-    $sql = "SELECT id, nome, crf, email FROM farmaceuticos ORDER BY nome ASC";
-    $result = mysqli_query($conn, $sql);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-    if ($result && mysqli_num_rows($result) > 0):
-        echo '<table class="table table-striped table-hover mt-3"><thead class="table-light"><tr><th>Nome</th><th>CRF</th><th>E-mail</th></tr></thead><tbody>';
-        while ($row = mysqli_fetch_assoc($result)):
-            echo '<tr><td>' . htmlspecialchars($row['nome']) . '</td><td>' . htmlspecialchars($row['crf']) . '</td><td>' . htmlspecialchars($row['email']) . '</td></tr>';
+include("../config/database.php");
+
+// ✅ Endpoint para carregar apenas a lista — independente de ser AJAX
+if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
+    $sql = "SELECT id, nome, crf, email, telefone, status, criado_em FROM farmaceuticos ORDER BY nome ASC";
+    $result = $conn->query($sql);
+
+    if ($result && $result->num_rows > 0):
+        echo '<table class="table table-striped table-hover mt-3"><thead class="table-light"><tr><th>Nome</th><th>CRF</th><th>E-mail</th><th>Telefone</th><th>Status</th><th>Criado em</th></tr></thead><tbody>';
+        while ($row = $result->fetch_assoc()):
+            $statusBadge = $row['status'] === 'ativo' ? 'success' : 'danger';
+            echo '<tr>';
+            echo '<td>' . htmlspecialchars($row['nome']) . '</td>';
+            echo '<td>' . htmlspecialchars($row['crf']) . '</td>';
+            echo '<td>' . htmlspecialchars($row['email']) . '</td>';
+            echo '<td>' . htmlspecialchars($row['telefone'] ?? '-') . '</td>';
+            echo '<td><span class="badge bg-' . $statusBadge . '">' . ucfirst($row['status']) . '</span></td>';
+            echo '<td>' . date('d/m/Y H:i', strtotime($row['criado_em'])) . '</td>';
+            echo '</tr>';
         endwhile;
         echo '</tbody></table>';
     else:
         echo '<p class="text-muted mt-3">Nenhum farmacêutico cadastrado.</p>';
     endif;
-    exit;
+    exit; // ⚠️ IMPEDIR EXECUÇÃO DO RESTANTE
 }
 
-// Bloco de cadastro — REDIRECIONA IMEDIATAMENTE após sucesso
-if (isset($_POST['salvar'])) {
+// Bloco de cadastro — agora SEM depender de $isAjax para sair
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome = trim($_POST['nome'] ?? '');
-    $crf  = trim($_POST['crf'] ?? '');
+    $crf = trim($_POST['crf'] ?? '');
     $email = trim($_POST['email'] ?? '');
+    $telefone = trim($_POST['telefone'] ?? '');
+    $status = $_POST['status'] ?? 'ativo';
 
     if (empty($nome) || empty($crf) || empty($email)) {
-        if (empty($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttprequest') {
-            echo "<div class='alert alert-danger mx-4 my-3' role='alert'>Todos os campos obrigatórios devem ser preenchidos.</div>";
+        if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            echo "error: Campos obrigatórios (nome, CRF, e-mail) não preenchidos.";
+        } else {
+            $_SESSION['error'] = "Campos obrigatórios não preenchidos.";
+            header("Location: farmaceutico.php");
+        }
+        exit;
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            echo "error: E-mail inválido.";
+        } else {
+            $_SESSION['error'] = "E-mail inválido.";
+            header("Location: farmaceutico.php");
+        }
+        exit;
+    }
+
+    $stmt = $conn->prepare("INSERT INTO farmaceuticos (nome, crf, email, telefone, status) VALUES (?, ?, ?, ?, ?)");
+    if (!$stmt) {
+        if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            echo "error: falha ao preparar statement - " . $conn->error;
+        } else {
+            $_SESSION['error'] = "Erro interno ao preparar cadastro.";
+            header("Location: farmaceutico.php");
+        }
+        exit;
+    }
+    $stmt->bind_param("sssss", $nome, $crf, $email, $telefone, $status);
+
+    if ($stmt->execute()) {
+        if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            echo "success";
+        } else {
+            $_SESSION['success'] = "Farmacêutico cadastrado com sucesso!";
+            header("Location: farmaceutico.php");
         }
     } else {
-        $nome = mysqli_real_escape_string($conn, $nome);
-        $crf = mysqli_real_escape_string($conn, $crf);
-        $email = mysqli_real_escape_string($conn, $email);
-
-        $sql = "INSERT INTO farmaceuticos (nome, crf, email) VALUES ('$nome', '$crf', '$email')";
-
-        if (mysqli_query($conn, $sql)) {
-            // 👇👇👇 REDIRECIONA IMEDIATAMENTE — EVITA F5 DUPLICAR 👇👇👇
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit;
+        if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            echo "error: " . $stmt->error;
         } else {
-            if (empty($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttprequest') {
-                echo "<div class='alert alert-danger mx-4 my-3' role='alert'>Erro ao cadastrar: " . mysqli_error($conn) . "</div>";
-            }
+            $_SESSION['error'] = "Erro ao salvar: " . $stmt->error;
+            header("Location: farmaceutico.php");
         }
     }
+
+    $stmt->close();
     exit;
 }
 ?>
@@ -54,24 +96,25 @@ if (isset($_POST['salvar'])) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Farmacêutico</title>
-  <link rel="icon" href="/assets/favicon.png" type="image/png">
+  <title>Farmacêuticos</title>
+  <link rel="icon" href="/portal-repo-og/assets/favicon.png" type="image/png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="stylesheet" href="styles/global.css">
-  <link rel="stylesheet" href="styles/header.css">
-  <link rel="stylesheet" href="styles/sidebar.css">
-  <link rel="stylesheet" href="styles/main.css">
-  <link rel="stylesheet" href="styles/responsive.css">
-  <link rel="stylesheet" href="styles/paciente.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/global.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/header.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/sidebar.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/main.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/responsive.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/paciente.css">
 </head>
 <body>
+  <!-- Containers para Header e Sidebar -->
   <div id="header-container"></div>
   <div id="main-content-wrapper">
     <div id="sidebar-container"></div>
     <div id="main-container">
       <div class="page-header">
-        <h2 class="page-title">Farmacêutico</h2>
+        <h2 class="page-title">Farmacêuticos</h2>
         <p class="page-subtitle">Gestão e controle de acessos de Farmacêuticos</p>
       </div>
 
@@ -92,7 +135,7 @@ if (isset($_POST['salvar'])) {
               </select>
             </div>
             <div class="col-12 col-md-2">
-              <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#pacienteModal">
+              <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#farmaceuticoModal">
                 <i class="fa fa-user-plus"></i> Novo Farmacêutico
               </button>
             </div>
@@ -104,13 +147,21 @@ if (isset($_POST['salvar'])) {
           <h2 class="list-title">Lista de Farmacêuticos</h2>
           <div id="lista-pacientes">
             <?php
-            $sql = "SELECT id, nome, crf, email FROM farmaceuticos ORDER BY nome ASC";
-            $result = mysqli_query($conn, $sql);
+            $sql = "SELECT id, nome, crf, email, telefone, status, criado_em FROM farmaceuticos ORDER BY nome ASC";
+            $result = $conn->query($sql);
 
-            if ($result && mysqli_num_rows($result) > 0):
-                echo '<table class="table table-striped table-hover mt-3"><thead class="table-light"><tr><th>Nome</th><th>CRF</th><th>E-mail</th></tr></thead><tbody>';
-                while ($row = mysqli_fetch_assoc($result)):
-                    echo '<tr><td>' . htmlspecialchars($row['nome']) . '</td><td>' . htmlspecialchars($row['crf']) . '</td><td>' . htmlspecialchars($row['email']) . '</td></tr>';
+            if ($result && $result->num_rows > 0):
+                echo '<table class="table table-striped table-hover mt-3"><thead class="table-light"><tr><th>Nome</th><th>CRF</th><th>E-mail</th><th>Telefone</th><th>Status</th><th>Criado em</th></tr></thead><tbody>';
+                while ($row = $result->fetch_assoc()):
+                    $statusBadge = $row['status'] === 'ativo' ? 'success' : 'danger';
+                    echo '<tr>';
+                    echo '<td>' . htmlspecialchars($row['nome']) . '</td>';
+                    echo '<td>' . htmlspecialchars($row['crf']) . '</td>';
+                    echo '<td>' . htmlspecialchars($row['email']) . '</td>';
+                    echo '<td>' . htmlspecialchars($row['telefone'] ?? '-') . '</td>';
+                    echo '<td><span class="badge bg-' . $statusBadge . '">' . ucfirst($row['status']) . '</span></td>';
+                    echo '<td>' . date('d/m/Y H:i', strtotime($row['criado_em'])) . '</td>';
+                    echo '</tr>';
                 endwhile;
                 echo '</tbody></table>';
             else:
@@ -124,10 +175,10 @@ if (isset($_POST['salvar'])) {
   </div>
 
   <!-- Modal -->
-  <div class="modal fade" id="pacienteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal fade" id="farmaceuticoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
-        <form method="post" action="">
+        <form id="formFarmaceutico" method="post">
           <div class="modal-header">
             <h5 class="modal-title">Cadastrar Novo Farmacêutico</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -146,11 +197,22 @@ if (isset($_POST['salvar'])) {
                 <label class="form-label">Email *</label>
                 <input type="email" class="form-control" name="email" required>
               </div>
+              <div class="col-6">
+                <label class="form-label">Telefone</label>
+                <input type="tel" class="form-control" name="telefone" placeholder="(00) 00000-0000">
+              </div>
+              <div class="col-6">
+                <label class="form-label">Status</label>
+                <select class="form-select" name="status">
+                  <option value="ativo" selected>Ativo</option>
+                  <option value="inativo">Inativo</option>
+                </select>
+              </div>
             </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" name="salvar" class="btn btn-primary-custom">Salvar Farmacêutico</button>
+            <button type="submit" class="btn btn-primary-custom">Salvar Farmacêutico</button>
           </div>
         </form>
       </div>
@@ -159,8 +221,8 @@ if (isset($_POST['salvar'])) {
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/js/script.js"></script>
-  <script src="/js/farmaceutico.js"></script>
+  <script src="/portal-repo-og/js/script.js"></script>
+  <script src="/portal-repo-og/js/farmaceutico.js"></script>
 
   <script>
     function loadTemplate(templatePath, containerId) {
@@ -174,8 +236,8 @@ if (isset($_POST['salvar'])) {
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        loadTemplate('/templates/header.php', 'header-container');
-        loadTemplate('/templates/sidebar.php', 'sidebar-container');
+        loadTemplate('/portal-repo-og/templates/header.php', 'header-container');
+        loadTemplate('/portal-repo-og/templates/sidebar.php', 'sidebar-container');
     });
   </script>
 </body>
