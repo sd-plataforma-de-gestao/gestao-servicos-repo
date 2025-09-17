@@ -43,9 +43,9 @@
       }
     
       document.addEventListener('DOMContentLoaded', async function() {
-        await loadTemplate('templates/header.html', 'header-container');
-        await loadTemplate('templates/sidebar.html', 'sidebar-container');
-        await loadTemplate('templates/main.html', 'main-container');
+        await loadTemplate('templates/header.php', 'header-container');
+        await loadTemplate('templates/sidebar.php', 'sidebar-container');
+        await loadTemplate('templates/main.php', 'main-container');
       });
     </script>
 </body>

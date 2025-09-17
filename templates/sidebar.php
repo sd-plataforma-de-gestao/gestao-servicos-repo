@@ -7,49 +7,50 @@
   
   <ul class="sidebar-nav">
     <li class="sidebar-item">
-      <a href="/index.html" class="sidebar-link active">
+      <a href="/index.php" class="sidebar-link active">
         <i class="fas fa-home"></i>
         <span>Início</span>
       </a>
     </li>
     
     <li class="sidebar-item dropdown-sidebar">
-      <a href="/templates/atendimento.html" class="sidebar-link">
+      
+      <a href="#" class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#atendimentoSubmenu" aria-expanded="false">
         <i class="fas fa-hospital-alt"></i>
         <span>Atendimento</span>
+        <i class="fas fa-chevron-down sidebar-arrow"></i>
       </a>
+      <div class="collapse" id="atendimentoSubmenu">
+        <ul class="sidebar-submenu">
+          <li><a class="sidebar-sublink" href="#">Atendimento Crônico</a></li>
+          <li><a class="sidebar-sublink" href="#">Atendimento Agudo</a></li>
+        </ul>
+      </div>
     </li>
     
     <li class="sidebar-item">
-      <a href="/templates/paciente.html" class="sidebar-link">
-        <i class="fa-solid fa-user-injured"></i>
+      <a href="/templates/paciente.php" class="sidebar-link">
+        <i class="fas fa-users"></i>
         <span>Pacientes</span>
       </a>
     </li>
 
      <li class="sidebar-item">
-      <a href="/templates/farmaceutico.html" class="sidebar-link">
-        <i class="fa-solid fa-stethoscope"></i>
+      <a href="/templates/farmaceutico.php" class="sidebar-link">
+        <i class="fas fa-users"></i>
         <span>Farmacêuticos</span>
-      </a>
+      </a>  
     </li>
     
     <li class="sidebar-item">
-      <a href="/templates/medicamento.html" class="sidebar-link">
-        <i class="fa-solid fa-heart-pulse"></i>
-        <span>Medicamentos</span>
-      </a>
-    </li>
-
-    <li class="sidebar-item">
-      <a href="/templates/insights.html" class="sidebar-link">
+      <a href="#" class="sidebar-link">
         <i class="fas fa-chart-line"></i>
         <span>Relatórios e Insights</span>
       </a>
     </li>
     
     <li class="sidebar-item">
-      <a href="/templates/unidade.html" class="sidebar-link">
+      <a href="#" class="sidebar-link">
         <i class="fas fa-building"></i>
         <span>Gestão de Unidades</span>
       </a>
