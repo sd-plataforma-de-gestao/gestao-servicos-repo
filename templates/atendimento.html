@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Atendimento Farmacêutico</title>
+  <title>Atendimento Farmacêutico - Vitally</title>
 
   <!-- Favicons -->
   <link rel="icon" href="/assets/favicon.png" type="image/png">
@@ -55,6 +55,7 @@
       <!-- Chat Container -->
       <div class="card chat-container d-none" id="chat-container">
         <div class="chat-messages p-3" id="chat-messages">
+          <!-- Mensagens aparecerão aqui -->
         </div>
         <div class="chat-input-group p-3 border-top">
           <div class="input-group">
@@ -64,6 +65,16 @@
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- Sugestões -->
+      <div class="card suggestions-card d-none mt-4" id="suggestions">
+        <div class="card-header">
+          <h5 class="mb-0">💡 Sugestões para o atendimento</h5>
+        </div>
+        <ul class="list-group list-group-flush" id="suggestion-list">
+          <!-- Sugestões serão inseridas aqui -->
+        </ul>
       </div>
     </div>
   </div>
