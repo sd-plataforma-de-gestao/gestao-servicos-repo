@@ -63,11 +63,9 @@
     </li>
   </ul>
   
-  <!-- Sidebar toggle button for mobile -->
   <button class="sidebar-toggle" id="sidebarToggle">
     <i class="fas fa-bars"></i>
   </button>
 </nav>
 
-<!-- Sidebar overlay for mobile -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>

@@ -1,7 +1,6 @@
 <?php include("../config/database.php"); ?>
 
 <?php
-// 👇 ENDPOINT PARA CARREGAR DADOS VIA AJAX (ex: histórico de atendimentos, sugestões, etc.)
 if (isset($_GET['action']) && $_GET['action'] === 'load_data') {
     $sql = "SELECT id, tipo, pergunta, resposta, data_atendimento FROM atendimentos ORDER BY data_atendimento DESC LIMIT 10";
     $result = mysqli_query($conn, $sql);
@@ -22,8 +21,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_data') {
     endif;
     exit;
 }
-
-// 👇 BLOCO DE REGISTRO DE ATENDIMENTO — REDIRECIONA APÓS SALVAR
 if (isset($_POST['salvar_atendimento'])) {
     $tipo     = trim($_POST['tipo'] ?? '');
     $pergunta = trim($_POST['pergunta'] ?? '');
@@ -59,17 +56,9 @@ if (isset($_POST['salvar_atendimento'])) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Atendimento Farmacêutico - Vitally</title>
-
-  <!-- Favicons -->
   <link rel="icon" href="/assets/favicon.png" type="image/png">
-
-  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-  <!-- Custom Styles -->
   <link rel="stylesheet" href="/styles/global.css">
   <link rel="stylesheet" href="/styles/header.css">
   <link rel="stylesheet" href="/styles/sidebar.css">
@@ -78,23 +67,14 @@ if (isset($_POST['salvar_atendimento'])) {
   <link rel="stylesheet" href="/styles/atendimento.css">
 </head>
 <body>
-
-  <!-- Cabeçalho -->
   <div id="header-container"></div>
-
-  <!-- Container principal -->
   <div id="main-content-wrapper">
-    <!-- Sidebar -->
     <div id="sidebar-container"></div>
-
-    <!-- Conteúdo -->
     <div id="main-container">
       <div class="page-header">
         <h2 class="page-title">Atendimento Farmacêutico</h2>
         <p class="page-subtitle">Auxílio inteligente no atendimento ao paciente. Comece selecionando o tipo de atendimento.</p>
       </div>
-
-      <!-- Botão para abrir modal de novo atendimento -->
       <div class="mb-4">
         <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#atendimentoModal">
           <i class="fa fa-plus"></i> Novo Atendimento
@@ -104,7 +84,6 @@ if (isset($_POST['salvar_atendimento'])) {
         </button>
       </div>
 
-      <!-- Lista de atendimentos recentes -->
       <div class="card">
         <div class="card-header">
           <h5 class="mb-0">📋 Últimos Atendimentos Registrados</h5>
@@ -132,10 +111,8 @@ if (isset($_POST['salvar_atendimento'])) {
         </div>
       </div>
 
-      <!-- Chat Container (opcional - mantido do original) -->
       <div class="card chat-container d-none mt-4" id="chat-container">
         <div class="chat-messages p-3" id="chat-messages">
-          <!-- Mensagens aparecerão aqui -->
         </div>
         <div class="chat-input-group p-3 border-top">
           <div class="input-group">
@@ -147,19 +124,16 @@ if (isset($_POST['salvar_atendimento'])) {
         </div>
       </div>
 
-      <!-- Sugestões -->
       <div class="card suggestions-card d-none mt-4" id="suggestions">
         <div class="card-header">
           <h5 class="mb-0">💡 Sugestões para o atendimento</h5>
         </div>
         <ul class="list-group list-group-flush" id="suggestion-list">
-          <!-- Sugestões serão inseridas aqui -->
         </ul>
       </div>
     </div>
   </div>
 
-  <!-- Modal de Novo Atendimento -->
   <div class="modal fade" id="atendimentoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
@@ -197,12 +171,10 @@ if (isset($_POST['salvar_atendimento'])) {
     </div>
   </div>
 
-  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/js/script.js"></script>
   <script src="/js/atendimento.js"></script>
 
-  <!-- Carrega Header e Sidebar via JS (igual ao farmaceutico.php) -->
   <script>
     function loadTemplate(templatePath, containerId) {
         fetch(templatePath)
@@ -217,8 +189,6 @@ if (isset($_POST['salvar_atendimento'])) {
     document.addEventListener('DOMContentLoaded', function() {
         loadTemplate('/templates/header.php', 'header-container');
         loadTemplate('/templates/sidebar.php', 'sidebar-container');
-
-        // Inicializa funções globais
         if (typeof initializeSidebar === 'function') initializeSidebar();
         if (typeof initializeActionButtons === 'function') initializeActionButtons();
         if (typeof initializeTooltips === 'function') initializeTooltips();
@@ -226,7 +196,6 @@ if (isset($_POST['salvar_atendimento'])) {
         if (typeof setActiveSidebarLink === 'function') setActiveSidebarLink();
         if (typeof initAtendimento === 'function') initAtendimento();
 
-        // Botão para recarregar dados via AJAX
         document.getElementById('btn-load-data')?.addEventListener('click', function() {
             fetch('?action=load_data')
                 .then(r => r.text())

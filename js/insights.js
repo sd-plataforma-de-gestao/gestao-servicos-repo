@@ -1,6 +1,4 @@
-// ===== DADOS FICTÍCIOS (SUBSTITUIR POR CHAMADAS DE API) =====
-
-// Simulação de dados que virão do banco de dados - SETOR FARMACÊUTICO
+// Banco de Dados que eu adicionei pro front da tela de insights, depois temos que conectar com nosso banco
 const dadosFicticios = {
     metricas: {
         receitaTotal: 89500.75,
@@ -89,42 +87,33 @@ const dadosFicticios = {
     ]
 };
 
-// ===== VARIÁVEIS GLOBAIS =====
 let chartsInstances = {};
 let currentPeriod = 'diario';
-
-// ===== FUNÇÕES DE INICIALIZAÇÃO =====
 
 document.addEventListener('DOMContentLoaded', function() {
     carregarHeaderESidebar();
     inicializarPagina();
 });
 
-// ===== FUNÇÃO PARA CARREGAR HEADER E SIDEBAR =====
 async function carregarHeaderESidebar() {
     try {
-        // Carregar Header
         const headerResponse = await fetch('header.html');
         const headerHtml = await headerResponse.text();
         document.getElementById('header-placeholder').innerHTML = headerHtml;
         
-        // Carregar Sidebar
         const sidebarResponse = await fetch('sidebar.html');
         const sidebarHtml = await sidebarResponse.text();
         document.getElementById('sidebar-placeholder').innerHTML = sidebarHtml;
         
-        // Inicializar funcionalidades do header e sidebar
         inicializarHeaderESidebar();
         
     } catch (error) {
         console.error('Erro ao carregar header e sidebar:', error);
-        // Fallback: criar elementos básicos
         criarHeaderESidebarBasicos();
     }
 }
 
 function inicializarHeaderESidebar() {
-    // Funcionalidade da sidebar
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebar = document.querySelector('.main-sidebar');
     const body = document.body;
@@ -136,7 +125,6 @@ function inicializarHeaderESidebar() {
         });
     }
     
-    // Submenu da sidebar
     document.querySelectorAll('.nav-item.has-submenu > .nav-link').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
@@ -145,7 +133,6 @@ function inicializarHeaderESidebar() {
         });
     });
     
-    // Pesquisa no header
     const searchInput = document.querySelector('.search-input');
     if (searchInput) {
         searchInput.addEventListener('input', function() {
@@ -156,7 +143,6 @@ function inicializarHeaderESidebar() {
 }
 
 function criarHeaderESidebarBasicos() {
-    // Criar header básico se não conseguir carregar
     const headerPlaceholder = document.getElementById('header-placeholder');
     headerPlaceholder.innerHTML = `
         <header class="main-header" style="height: 70px; background: white; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; padding: 0 20px;">
@@ -164,7 +150,6 @@ function criarHeaderESidebarBasicos() {
         </header>
     `;
     
-    // Criar sidebar básica se não conseguir carregar
     const sidebarPlaceholder = document.getElementById('sidebar-placeholder');
     sidebarPlaceholder.innerHTML = `
         <aside class="main-sidebar" style="width: 250px; height: calc(100vh - 70px); background: white; border-right: 1px solid #e0e0e0; padding: 20px;">
@@ -183,7 +168,6 @@ function criarHeaderESidebarBasicos() {
 function inicializarPagina() {
     mostrarLoading(true);
     
-    // Simular carregamento de dados
     setTimeout(() => {
         atualizarMetricas();
         inicializarGraficos();
@@ -192,7 +176,6 @@ function inicializarPagina() {
         configurarFiltros();
         mostrarLoading(false);
         
-        // Adicionar animações
         document.querySelectorAll('.card').forEach((card, index) => {
             setTimeout(() => {
                 card.classList.add('fade-in');
@@ -201,28 +184,22 @@ function inicializarPagina() {
     }, 1500);
 }
 
-// ===== FUNÇÕES DE MÉTRICAS =====
 
 function atualizarMetricas() {
     const metricas = dadosFicticios.metricas;
     
-    // Receita Total
     document.getElementById('receita-total').textContent = formatarMoeda(metricas.receitaTotal);
     document.getElementById('receita-variacao').textContent = `${metricas.receitaVariacao > 0 ? '+' : ''}${metricas.receitaVariacao}%`;
     
-    // Total de Atendimentos
     document.getElementById('total-vendas').textContent = formatarNumero(metricas.totalAtendimentos);
     document.getElementById('vendas-variacao').textContent = `${metricas.atendimentosVariacao > 0 ? '+' : ''}${metricas.atendimentosVariacao}%`;
     
-    // Novos Pacientes
     document.getElementById('novos-clientes').textContent = formatarNumero(metricas.novosPacientes);
     document.getElementById('clientes-variacao').textContent = `${metricas.pacientesVariacao > 0 ? '+' : ''}${metricas.pacientesVariacao}%`;
     
-    // Taxa de Adesão
     document.getElementById('taxa-conversao').textContent = `${metricas.taxaAdesao}%`;
     document.getElementById('conversao-variacao').textContent = `${metricas.adesaoVariacao > 0 ? '+' : ''}${metricas.adesaoVariacao}%`;
     
-    // Atualizar classes de variação
     atualizarClassesVariacao();
 }
 
@@ -254,8 +231,6 @@ function atualizarClassesVariacao() {
         }
     });
 }
-
-// ===== FUNÇÕES DE GRÁFICOS =====
 
 function inicializarGraficos() {
     criarGraficoAtendimentos();
@@ -507,8 +482,6 @@ function criarGraficoReceitaCustos() {
     });
 }
 
-// ===== FUNÇÕES DE TABELAS =====
-
 function preencherTabelas() {
     preencherTabelaMedicamentos();
     preencherTabelaPacientes();
@@ -599,15 +572,11 @@ function preencherTabelaAtendimentosRecentes() {
     });
 }
 
-// ===== FUNÇÕES DE EVENT LISTENERS =====
 
 function configurarEventListeners() {
-    // Controles dos gráficos
     document.querySelectorAll('[data-chart-type="vendas"]').forEach(btn => {
         btn.addEventListener('click', function() {
-            // Remover classe active de todos os botões
             document.querySelectorAll('[data-chart-type="vendas"]').forEach(b => b.classList.remove('active'));
-            // Adicionar classe active ao botão clicado
             this.classList.add('active');
             
             currentPeriod = this.dataset.period;
@@ -615,12 +584,10 @@ function configurarEventListeners() {
         });
     });
     
-    // Filtros
     document.getElementById('aplicar-filtros').addEventListener('click', aplicarFiltros);
     document.getElementById('limpar-filtros').addEventListener('click', limparFiltros);
     document.getElementById('exportar-relatorio').addEventListener('click', exportarRelatorio);
     
-    // Refresh de dados
     document.getElementById('refresh-vendas').addEventListener('click', function() {
         mostrarLoading(true);
         setTimeout(() => {
@@ -630,7 +597,6 @@ function configurarEventListeners() {
         }, 1000);
     });
     
-    // Ver todos os itens
     document.getElementById('ver-todos-produtos').addEventListener('click', () => {
         mostrarNotificacao('Redirecionando para página de medicamentos...', 'info');
     });
@@ -645,15 +611,12 @@ function configurarEventListeners() {
 }
 
 function configurarFiltros() {
-    // Configurar datas padrão
     const hoje = new Date();
     const trintaDiasAtras = new Date(hoje.getTime() - (30 * 24 * 60 * 60 * 1000));
     
     document.getElementById('data-fim').value = hoje.toISOString().split('T')[0];
     document.getElementById('data-inicio').value = trintaDiasAtras.toISOString().split('T')[0];
 }
-
-// ===== FUNÇÕES DE FILTROS =====
 
 function aplicarFiltros() {
     mostrarLoading(true);
@@ -667,10 +630,7 @@ function aplicarFiltros() {
     
     console.log('Aplicando filtros:', filtros);
     
-    // Simular aplicação de filtros
     setTimeout(() => {
-        // Aqui você faria a chamada para a API com os filtros
-        // Por enquanto, apenas recarregamos os dados
         atualizarMetricas();
         inicializarGraficos();
         preencherTabelas();
@@ -692,29 +652,21 @@ function limparFiltros() {
 function exportarRelatorio() {
     mostrarLoading(true);
     
-    // Simular exportação
     setTimeout(() => {
         mostrarLoading(false);
         mostrarNotificacao('Relatório exportado com sucesso!', 'success');
         
-        // Aqui você implementaria a lógica real de exportação
         console.log('Exportando relatório...');
     }, 2000);
 }
 
-// ===== FUNÇÕES DE AÇÕES =====
-
 function visualizarAtendimento(id) {
     mostrarNotificacao(`Visualizando atendimento #${id}`, 'info');
-    // Implementar modal ou redirecionamento
 }
 
 function editarAtendimento(id) {
     mostrarNotificacao(`Editando atendimento #${id}`, 'info');
-    // Implementar modal ou redirecionamento
 }
-
-// ===== FUNÇÕES UTILITÁRIAS =====
 
 function formatarMoeda(valor) {
     return new Intl.NumberFormat('pt-BR', {
@@ -755,7 +707,6 @@ function mostrarLoading(mostrar) {
 }
 
 function mostrarNotificacao(mensagem, tipo = 'info') {
-    // Criar elemento de notificação
     const notificacao = document.createElement('div');
     notificacao.className = `alert alert-${tipo === 'success' ? 'success' : tipo === 'error' ? 'danger' : 'info'} alert-dismissible fade show position-fixed`;
     notificacao.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
@@ -766,7 +717,6 @@ function mostrarNotificacao(mensagem, tipo = 'info') {
     
     document.body.appendChild(notificacao);
     
-    // Remover automaticamente após 3 segundos
     setTimeout(() => {
         if (notificacao.parentNode) {
             notificacao.remove();
@@ -774,17 +724,8 @@ function mostrarNotificacao(mensagem, tipo = 'info') {
     }, 3000);
 }
 
-// ===== FUNÇÕES PARA INTEGRAÇÃO FUTURA COM BANCO DE DADOS =====
-
-// Estas funções devem ser implementadas quando conectar com o backend
 async function carregarDadosDoServidor() {
     try {
-        // Exemplo de como seria a integração
-        // const response = await fetch('/api/relatorios/dados');
-        // const dados = await response.json();
-        // return dados;
-        
-        // Por enquanto, retorna dados fictícios
         return dadosFicticios;
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
@@ -795,11 +736,6 @@ async function carregarDadosDoServidor() {
 
 async function salvarFiltrosUsuario(filtros) {
     try {
-        // const response = await fetch('/api/usuario/filtros', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify(filtros)
-        // });
         console.log('Filtros salvos:', filtros);
     } catch (error) {
         console.error('Erro ao salvar filtros:', error);
@@ -808,13 +744,6 @@ async function salvarFiltrosUsuario(filtros) {
 
 async function exportarDados(formato = 'excel') {
     try {
-        // const response = await fetch(`/api/relatorios/exportar?formato=${formato}`);
-        // const blob = await response.blob();
-        // const url = window.URL.createObjectURL(blob);
-        // const a = document.createElement('a');
-        // a.href = url;
-        // a.download = `relatorio_${new Date().toISOString().split('T')[0]}.${formato}`;
-        // a.click();
         console.log(`Exportando dados em formato ${formato}`);
     } catch (error) {
         console.error('Erro ao exportar dados:', error);
@@ -822,17 +751,9 @@ async function exportarDados(formato = 'excel') {
     }
 }
 
-// ===== CONFIGURAÇÕES DE ATUALIZAÇÃO AUTOMÁTICA =====
-
-// Atualizar dados a cada 5 minutos (opcional)
 setInterval(() => {
-    if (!document.hidden) { // Só atualiza se a página estiver visível
+    if (!document.hidden) {
         console.log('Atualizando dados automaticamente...');
-        // carregarDadosDoServidor().then(dados => {
-        //     // Atualizar apenas se houver mudanças
-        //     atualizarMetricas();
-        //     preencherTabelaVendasRecentes();
-        // });
     }
-}, 5 * 60 * 1000); // 5 minutos
+}, 5 * 60 * 1000);
 

@@ -5,7 +5,6 @@ error_reporting(E_ALL);
 
 include("../config/database.php");
 
-// ✅ Endpoint para carregar apenas a lista — independente de ser AJAX
 if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     $sql = "SELECT id, nome, crf, email, telefone, status, criado_em FROM farmaceuticos ORDER BY nome ASC";
     $result = $conn->query($sql);
@@ -27,10 +26,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     else:
         echo '<p class="text-muted mt-3">Nenhum farmacêutico cadastrado.</p>';
     endif;
-    exit; // ⚠️ IMPEDIR EXECUÇÃO DO RESTANTE
-}
+    exit;
 
-// Bloco de cadastro — agora SEM depender de $isAjax para sair
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome = trim($_POST['nome'] ?? '');
     $crf = trim($_POST['crf'] ?? '');
@@ -108,7 +105,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link rel="stylesheet" href="/portal-repo-og/styles/paciente.css">
 </head>
 <body>
-  <!-- Containers para Header e Sidebar -->
   <div id="header-container"></div>
   <div id="main-content-wrapper">
     <div id="sidebar-container"></div>
@@ -117,9 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h2 class="page-title">Farmacêuticos</h2>
         <p class="page-subtitle">Gestão e controle de acessos de Farmacêuticos</p>
       </div>
-
       <div class="farmaceutico-page">
-        <!-- Barra de busca + filtro -->
         <div class="controls-bar card mb-4">
           <div class="row g-3 align-items-end">
             <div class="col-12 col-md-6">
@@ -142,7 +136,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </div>
         </div>
 
-        <!-- Lista de farmacêuticos -->
         <div class="pacientes-list card">
           <h2 class="list-title">Lista de Farmacêuticos</h2>
           <div id="lista-pacientes">
@@ -174,7 +167,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
   </div>
 
-  <!-- Modal -->
   <div class="modal fade" id="farmaceuticoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
@@ -219,7 +211,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
   </div>
 
-  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/portal-repo-og/js/script.js"></script>
   <script src="/portal-repo-og/js/farmaceutico.js"></script>

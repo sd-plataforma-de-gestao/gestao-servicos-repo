@@ -161,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="medicamentos-list card">
           <h2 class="list-title">Lista de Medicamentos</h2>
-          <div id="lista-pacientes"> <!-- 👈 MESMO ID DO FARMACÊUTICO (opcional, mas mantido para consistência) -->
+          <div id="lista-pacientes">
             <?php
             $sql = "SELECT id, nome, principio_ativo, laboratorio, quantidade, data_validade, preco FROM medicamentos ORDER BY nome ASC";
             $result = $conn->query($sql);
@@ -192,11 +192,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
   </div>
 
-  <!-- Modal -->
   <div class="modal fade" id="medicamentoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
-        <form id="formFarmaceutico" method="post"> <!-- 👈 MESMO ID DO FARMACÊUTICO (opcional) -->
+        <form id="formFarmaceutico" method="post">
           <div class="modal-header">
             <h5 class="modal-title">Cadastrar Novo Medicamento</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -279,7 +278,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
   </div>
 
-  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/portal-repo-og/js/script.js"></script>
   <script src="/portal-repo-og/js/medicamento.js"></script>

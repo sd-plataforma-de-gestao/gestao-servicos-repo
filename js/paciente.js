@@ -8,7 +8,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
-    // Função para recarregar APENAS a lista
     function recarregarLista() {
         fetch('paciente.php?action=load_list')
             .then(r => r.text())
@@ -21,11 +20,9 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
 
-    // Evento de submit
     formPaciente.addEventListener("submit", function (e) {
         e.preventDefault();
 
-        // Pega o primeiro botão de submit
         const btn = formPaciente.querySelector('[type="submit"]');
         if (!btn) {
             console.error("❌ Botão de cadastro não encontrado!");

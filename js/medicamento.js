@@ -1,11 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const formFarmaceutico = document.querySelector("#medicamentoModal form"); // 👈 Seleciona o form dentro do modal
+    const formFarmaceutico = document.querySelector("#medicamentoModal form"); 
     const farmaceuticoModalElement = document.getElementById("medicamentoModal");
-    const listaPacientes = document.getElementById("lista-pacientes"); // 👈 Mesmo ID usado no PHP
+    const listaPacientes = document.getElementById("lista-pacientes");
 
     if (!formFarmaceutico || !listaPacientes) return;
 
-    // Função para recarregar APENAS a lista
     function recarregarLista() {
         fetch('medicamento.php?action=load_list')
             .then(r => r.text())
@@ -17,8 +16,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 listaPacientes.innerHTML = '<p class="text-danger">Erro ao carregar a lista. Tente novamente.</p>';
             });
     }
-
-    // Evento de submit
     formFarmaceutico.addEventListener("submit", function (e) {
         e.preventDefault();
 

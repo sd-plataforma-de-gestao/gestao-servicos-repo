@@ -1,19 +1,14 @@
-/* ===== SIDEBAR STYLES ===== */
-
 .sidebar {
   width: var(--sidebar-width);
-  height: calc(100vh - var(--header-height)); /* A altura da tela menos a altura do header */
-  background: #ffffff; /* Ou a cor de fundo que você preferir */
-  overflow-y: auto; /* Para rolagem interna se o conteúdo for maior */
+  height: calc(100vh - var(--header-height)); 
+  background: #ffffff;
+  overflow-y: auto; 
   box-shadow: 2px 0 5px rgba(0,0,0,0.1);
   z-index: 999;
-  border-right: 1px solid #ddd; /* ← aqui está a divisória */
+  border-right: 1px solid #ddd;
   
 }
 
-
-
-/* Sidebar header */
 .sidebar-header {
   padding: var(--spacing-xs);
   text-align: center;
@@ -34,7 +29,6 @@
   font-size: var(--font-size-xs);
 }
 
-/* Navigation */
 .sidebar-nav {
   list-style: none;
   padding: 0;
@@ -85,7 +79,6 @@
   transform: rotate(180deg);
 }
 
-/* Submenu */
 .sidebar-submenu {
   list-style: none;
   padding: 0;
@@ -111,7 +104,6 @@
   text-decoration: none;
 }
 
-/* Mobile toggle button */
 .sidebar-toggle {
   display: none;
   position: fixed;
@@ -128,7 +120,6 @@
   box-shadow: var(--shadow-md);
 }
 
-/* Mobile overlay */
 .sidebar-overlay {
   display: none;
   position: fixed;
@@ -140,7 +131,6 @@
   z-index: 999;
 }
 
-/* Mobile responsive */
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
@@ -161,7 +151,6 @@
   }
 }
 
-/* Scrollbar for sidebar */
 .sidebar::-webkit-scrollbar {
   width: 4px;
 }

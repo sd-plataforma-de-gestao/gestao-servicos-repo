@@ -1,4 +1,3 @@
-/* ===== PÁGINA DE PACIENTES ===== */
 .pacientes-page {
   display: flex;
   flex-direction: column;
@@ -18,7 +17,6 @@
   font-size: var(--font-size-base);
 }
 
-/* ===== CONTROLES: BUSCA E FILTRO ===== */
 .controls-bar {
   padding: var(--spacing-md);
   border-radius: var(--border-radius-lg);
@@ -40,7 +38,6 @@
   font-size: 0.9em;
 }
 
-/* ===== LISTA DE PACIENTES ===== */
 .pacientes-list {
   padding: var(--spacing-md);
   border-radius: var(--border-radius-lg);
@@ -58,7 +55,6 @@
   gap: var(--spacing-xs);
 }
 
-/* ===== CARD DE PACIENTE ===== */
 .paciente-card {
   display: flex;
   justify-content: space-between;
@@ -117,14 +113,12 @@
   color: #adb5bd;
 }
 
-/* ===== AÇÕES DO CARD ===== */
 .paciente-actions {
   display: flex;
   gap: var(--spacing-sm);
   align-items: center;
 }
 
-/* ===== STATUS BADGE ===== */
 .status-badge {
   padding: 0.25rem 0.5rem;
   border-radius: var(--border-radius-sm);

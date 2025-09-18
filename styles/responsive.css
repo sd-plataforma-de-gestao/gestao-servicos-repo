@@ -1,6 +1,3 @@
-/* ===== RESPONSIVE DESIGN ===== */
-
-/* Large screens */
 @media (min-width: 1400px) {
   .main-content {
     padding: var(--spacing-xl) calc(var(--spacing-xl) * 2);
@@ -11,7 +8,6 @@
   }
 }
 
-/* Medium screens */
 @media (max-width: 1199px) {
   :root {
     --sidebar-width: 220px;
@@ -26,7 +22,6 @@
   }
 }
 
-/* Small laptops */
 @media (max-width: 991px) {
   .content-grid {
     grid-template-columns: 1fr;
@@ -37,13 +32,11 @@
   }
 }
 
-/* Tablets */
 @media (max-width: 768px) {
   :root {
     --sidebar-width: 250px;
   }
   
-  /* Hide sidebar by default on mobile */
   .sidebar {
     transform: translateX(-100%);
     z-index: 1002;
@@ -53,19 +46,16 @@
     transform: translateX(0);
   }
   
-  /* Show sidebar toggle */
   .sidebar-toggle {
     display: flex;
   }
   
-  /* Adjust main content */
   .main-content {
     margin-left: 0;
     padding: var(--spacing-md);
     padding-top: calc(var(--header-height) + var(--spacing-md));
   }
   
-  /* Header adjustments */
   .header {
     padding: var(--spacing-sm) var(--spacing-md);
   }
@@ -78,13 +68,11 @@
     font-size: var(--font-size-lg);
   }
   
-  /* Stats grid */
   .stats-container {
     grid-template-columns: 1fr;
     gap: var(--spacing-md);
   }
   
-  /* Activities adjustments */
   .activity-item {
     flex-direction: column;
     align-items: flex-start;
@@ -99,19 +87,16 @@
     text-align: left;
   }
   
-  /* Actions grid */
   .actions-grid {
     grid-template-columns: 1fr;
   }
   
-  /* Card adjustments */
   .card-header,
   .card-body {
     padding: var(--spacing-md);
   }
 }
 
-/* Mobile phones */
 @media (max-width: 576px) {
   .main-content {
     padding: var(--spacing-sm);
@@ -159,7 +144,6 @@
   }
 }
 
-/* Landscape mobile */
 @media (max-width: 768px) and (orientation: landscape) {
   .main-content {
     padding-top: calc(var(--header-height) + var(--spacing-sm));
@@ -170,7 +154,6 @@
   }
 }
 
-/* High DPI displays */
 @media (min-resolution: 2dppx) {
   .sidebar-header img,
   .header-logo img {
@@ -179,7 +162,6 @@
   }
 }
 
-/* Touch devices */
 @media (hover: none) and (pointer: coarse) {
   .sidebar-link,
   .action-btn,
@@ -192,7 +174,6 @@
   }
 }
 
-/* Print styles */
 @media print {
   .sidebar,
   .header,
@@ -216,7 +197,6 @@
   }
 }
 
-/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;

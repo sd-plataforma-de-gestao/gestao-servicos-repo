@@ -1,4 +1,3 @@
-/* ===== PÁGINA DE GESTÃO DE UNIDADES ===== */
 .unidades-page {
   display: flex;
   flex-direction: column;
@@ -18,7 +17,6 @@
   font-size: var(--font-size-base);
 }
 
-/* ===== SEÇÃO DE ESTATÍSTICAS ===== */
 .stats-section {
   margin-bottom: var(--spacing-lg);
 }
@@ -72,7 +70,6 @@
   font-weight: 500;
 }
 
-/* ===== CABEÇALHO DA PÁGINA COM BOTÃO ===== */
 .page-header-with-button {
   display: flex;
   justify-content: space-between;
@@ -81,11 +78,11 @@
 }
 
 .page-header-with-button .page-title {
-  margin-bottom: 0; /* Remove margem inferior do título para alinhar melhor */
+  margin-bottom: 0;
 }
 
 .page-header-with-button .page-subtitle {
-  margin-top: var(--spacing-xs); /* Adiciona um pequeno espaçamento entre título e subtítulo */
+  margin-top: var(--spacing-xs);
 }
 
 .btn-nova-unidade {
@@ -103,7 +100,6 @@
   box-shadow: var(--shadow-lg);
 }
 
-/* Ajustes para responsividade */
 @media (max-width: 768px) {
   .page-header-with-button {
     flex-direction: column;
@@ -116,7 +112,6 @@
   }
 }
 
-/* ===== GRID DE UNIDADES ===== */
 .unidades-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -268,7 +263,6 @@
   border-color: var(--primary-hover);
 }
 
-/* ===== MODAL CUSTOMIZATIONS ===== */
 .modal-body textarea {
   resize: vertical;
   min-height: 80px;
@@ -279,7 +273,6 @@
   box-shadow: 0 0 0 0.2rem rgba(26, 109, 64, 0.25);
 }
 
-/* ===== EMPTY STATE ===== */
 .empty-state {
   text-align: center;
   padding: var(--spacing-xl) var(--spacing-lg);
@@ -305,7 +298,6 @@
   margin-bottom: var(--spacing-lg);
 }
 
-/* ===== RESPONSIVIDADE ===== */
 @media (max-width: 768px) {
   .unidades-grid {
     grid-template-columns: 1fr;
@@ -397,4 +389,3 @@
     transform: rotate(360deg);
   }
 }
-

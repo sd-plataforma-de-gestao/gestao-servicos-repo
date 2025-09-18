@@ -5,7 +5,6 @@ error_reporting(E_ALL);
 
 include("../config/database.php");
 
-// ✅ 1. Endpoint para carregar só a lista — INDEPENDENTE de ser AJAX
 if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     $sql = "SELECT id, nome, dtnascimento, email, cpf, telefone, tipo_paciente, status FROM pacientes ORDER BY nome ASC";
     $result = mysqli_query($conn, $sql);
@@ -29,10 +28,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     else:
         echo '<p class="text-muted mt-3">Nenhum paciente cadastrado.</p>';
     endif;
-    exit; // ⚠️ SAIR IMEDIATAMENTE — NÃO RENDERIZAR O RESTANTE!
+    exit;
 }
 
-// ✅ 2. Bloco de cadastro — só processa POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Verifica se é AJAX
     $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
@@ -95,8 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $stmt->close();
-    exit; // ⚠️ SAIR IMEDIATAMENTE — NÃO RENDERIZAR O RESTANTE!
-}
+    exit;
 ?>
 
 <!DOCTYPE html>
@@ -183,11 +180,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
   </div>
 
-  <!-- Modal -->
   <div class="modal fade" id="pacienteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
-        <form id="formPaciente" method="post"> <!-- 👈 ADICIONEI O ID AQUI -->
+        <form id="formPaciente" method="post">
           <div class="modal-header">
             <h5 class="modal-title">Cadastrar Novo Paciente</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -239,7 +235,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
   </div>
 
-  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/portal-repo-og/js/script.js"></script>
   <script src="/portal-repo-og/js/paciente.js"></script>

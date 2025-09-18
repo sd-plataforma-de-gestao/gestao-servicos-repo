@@ -1,7 +1,6 @@
 <?php include("../config/database.php"); ?>
 
 <?php
-// 👇 ENDPOINT PARA CARREGAR LISTA VIA AJAX
 if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     $sql = "SELECT * FROM unidades ORDER BY nome ASC";
     $result = mysqli_query($conn, $sql);
@@ -50,8 +49,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     endif;
     exit;
 }
-
-// 👇 ENDPOINT PARA CARREGAR DADOS DE UMA UNIDADE (para edição/visualização)
 if (isset($_GET['action']) && $_GET['action'] === 'get_unidade' && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
     $sql = "SELECT * FROM unidades WHERE id = ?";
@@ -71,7 +68,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_unidade' && isset($_GET['
     exit;
 }
 
-// 👇 BLOCO DE CADASTRO/EDIÇÃO — REDIRECIONA APÓS SALVAR
 if (isset($_POST['salvar'])) {
     $id = $_POST['id'] ?? null;
     $nome = trim($_POST['nome'] ?? '');
@@ -84,13 +80,10 @@ if (isset($_POST['salvar'])) {
     $status = $_POST['status'] ?? 'Ativa';
     $observacoes = trim($_POST['observacoes'] ?? '');
 
-    // Validação básica
     if (empty($nome) || empty($cnpj) || empty($telefone) || empty($endereco)) {
         echo "<div class='alert alert-danger mx-4 my-3' role='alert'>Campos obrigatórios não preenchidos.</div>";
         exit;
     }
-
-    // Sanitização
     $nome = mysqli_real_escape_string($conn, $nome);
     $cnpj = mysqli_real_escape_string($conn, $cnpj);
     $telefone = mysqli_real_escape_string($conn, $telefone);
@@ -102,7 +95,6 @@ if (isset($_POST['salvar'])) {
     $observacoes = mysqli_real_escape_string($conn, $observacoes);
 
     if ($id) {
-        // Atualizar
         $sql = "UPDATE unidades SET 
                     nome = ?, 
                     cnpj = ?, 
@@ -131,7 +123,6 @@ if (isset($_POST['salvar'])) {
             $id
         );
     } else {
-        // Inserir
         $sql = "INSERT INTO unidades (
                     nome, 
                     cnpj, 
@@ -168,7 +159,6 @@ if (isset($_POST['salvar'])) {
     exit;
 }
 
-// 👇 ENDPOINT PARA EXCLUIR UNIDADE
 if (isset($_POST['action']) && $_POST['action'] === 'excluir' && isset($_POST['id'])) {
     $id = (int)$_POST['id'];
     $sql = "DELETE FROM unidades WHERE id = ?";
@@ -183,21 +173,17 @@ if (isset($_POST['action']) && $_POST['action'] === 'excluir' && isset($_POST['i
     exit;
 }
 
-// 👇 ENDPOINT PARA CARREGAR ESTATÍSTICAS
 if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
-    // Total de unidades
     $sql_total = "SELECT COUNT(*) as total FROM unidades";
     $result_total = mysqli_query($conn, $sql_total);
     $row_total = mysqli_fetch_assoc($result_total);
     $total_unidades = $row_total['total'];
 
-    // Total de farmacêuticos (assumindo que cada unidade tem 1-2 farmacêuticos, ou integrar com tabela farmaceuticos se tiver relacionamento)
     $sql_farma = "SELECT COUNT(*) as total FROM farmaceuticos WHERE status = 'ativo'";
     $result_farma = mysqli_query($conn, $sql_farma);
     $row_farma = mysqli_fetch_assoc($result_farma);
     $total_farmaceuticos = $row_farma['total'];
 
-    // Atendimentos hoje (assumindo tabela atendimentos)
     $sql_atendimentos = "SELECT COUNT(*) as total FROM atendimentos WHERE DATE(criado_em) = CURDATE()";
     $result_atendimentos = mysqli_query($conn, $sql_atendimentos);
     $row_atendimentos = mysqli_fetch_assoc($result_atendimentos);
@@ -232,15 +218,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
   <link rel="stylesheet" href="/styles/unidade.css">
 </head>
 <body>
-  <!-- Cabeçalho -->
   <div id="header-container"></div>
-
-  <!-- Container principal -->
   <div id="main-content-wrapper">
-    <!-- Sidebar -->
     <div id="sidebar-container"></div>
-
-    <!-- Conteúdo -->
     <div id="main-container">
       <div class="page-header-with-button">
         <div>
@@ -258,7 +238,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
       </div>
 
       <div class="unidades-page">
-        <!-- Estatísticas -->
         <div class="stats-section">
           <div class="row g-3">
             <div class="col-12 col-md-4">
@@ -297,7 +276,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
           </div>
         </div>
 
-        <!-- Grid de Unidades -->
         <div class="unidades-grid" id="unidadesGrid">
           <?php
           $sql = "SELECT * FROM unidades ORDER BY nome ASC";
@@ -351,7 +329,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
     </div>
   </div>
 
-  <!-- Modal Cadastrar/Editar -->
   <div class="modal fade" id="unidadeModal" tabindex="-1" aria-labelledby="unidadeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
@@ -416,7 +393,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
     </div>
   </div>
 
-  <!-- Modal Detalhes -->
   <div class="modal fade" id="detalhesUnidadeModal" tabindex="-1" aria-labelledby="detalhesUnidadeLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
@@ -425,7 +401,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body" id="detalhesCorpoUnidade">
-          <!-- Conteúdo será carregado via JS -->
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
@@ -437,13 +412,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
     </div>
   </div>
 
-  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/js/unidade.js"></script>
   <script src="/js/script.js"></script>
   <script src="/js/sidebar.js"></script>
-
-  <!-- Carrega Header e Sidebar via JS -->
   <script>
     function loadTemplate(templatePath, containerId) {
         fetch(templatePath)
@@ -454,8 +426,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
             })
             .catch(err => console.error('Erro ao carregar template:', err));
     }
-
-    // Carrega estatísticas
     function loadStats() {
         fetch('?action=load_stats')
             .then(r => r.json())
@@ -466,8 +436,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
             })
             .catch(err => console.error('Erro ao carregar estatísticas:', err));
     }
-
-    // Carrega lista de unidades
     function loadUnidades() {
         fetch('?action=load_list')
             .then(r => r.text())
@@ -478,9 +446,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
             .catch(err => console.error('Erro ao carregar unidades:', err));
     }
 
-    // Anexa eventos aos botões
     function attachEventListeners() {
-        // Ver detalhes
         document.querySelectorAll('.btn-ver').forEach(btn => {
             btn.addEventListener('click', function() {
                 const id = this.getAttribute('data-id');
@@ -517,7 +483,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
             });
         });
 
-        // Editar
         document.querySelectorAll('.btn-editar').forEach(btn => {
             btn.addEventListener('click', function() {
                 const id = this.getAttribute('data-id');
@@ -544,8 +509,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
                     });
             });
         });
-
-        // Excluir
         document.querySelectorAll('.btn-excluir').forEach(btn => {
             btn.addEventListener('click', function() {
                 if (!confirm('Tem certeza que deseja excluir esta unidade?')) return;
@@ -568,7 +531,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
         });
     }
 
-    // Reseta formulário
     function resetFormUnidade() {
         document.getElementById('formUnidade').reset();
         document.getElementById('unidadeId').value = '';
@@ -576,22 +538,18 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
     }
 
     document.addEventListener("DOMContentLoaded", function () {
-        // Carrega header e sidebar
         loadTemplate("/templates/header.php", "header-container");
         loadTemplate("/templates/sidebar.php", "sidebar-container");
 
-        // Inicializa funções globais
         if (typeof initializeSidebar === 'function') initializeSidebar();
         if (typeof initializeActionButtons === 'function') initializeActionButtons();
         if (typeof initializeTooltips === 'function') initializeTooltips();
         if (typeof initializeNavigation === 'function') initializeNavigation();
         if (typeof setActiveSidebarLink === 'function') setActiveSidebarLink();
 
-        // Carrega dados iniciais
         loadStats();
         attachEventListeners();
 
-        // Botão editar do modal de detalhes
         document.getElementById('btnEditarUnidade').addEventListener('click', function() {
             const id = this.getAttribute('data-id');
             fetch(`?action=get_unidade&id=${id}`)

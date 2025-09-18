@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (!formFarmaceutico || !listaPacientes) return;
 
-    // Função para recarregar APENAS a lista
     function recarregarLista() {
         fetch('farmaceutico.php?action=load_list')
             .then(r => r.text())
@@ -18,7 +17,6 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
 
-    // Evento de submit
     formFarmaceutico.addEventListener("submit", function (e) {
         e.preventDefault();
 

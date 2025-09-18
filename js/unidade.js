@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-
   const unidadesGrid = document.getElementById("unidadesGrid");
   const totalUnidadesEl = document.getElementById("totalUnidades");
   const totalFarmaceuticosEl = document.getElementById("totalFarmaceuticos");
@@ -24,6 +23,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusInput = document.getElementById("statusUnidade");
   const observacoesInput = document.getElementById("observacoesUnidade");
 
+    // Aqui "cadastrei" algumas empresas fictícias para visualização no front, 
+    // não temos nada do banco ainda em relação as unidades que existem.
   let todasUnidades = [
     {
       id: 1,

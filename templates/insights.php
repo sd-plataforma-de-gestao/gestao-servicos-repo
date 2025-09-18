@@ -1,11 +1,9 @@
 <?php include("../config/database.php"); ?>
 
 <?php
-// 👇 ENDPOINT PARA CARREGAR DADOS VIA AJAX (ex: métricas, gráficos, tabelas)
 if (isset($_GET['action']) && $_GET['action'] === 'load_insights') {
     $periodo = $_GET['periodo'] ?? '30'; // padrão: últimos 30 dias
 
-    // Simulação de dados — substitua pelas suas queries reais
     $receita_total = number_format(rand(15000, 80000), 2, ',', '.');
     $total_vendas = rand(80, 400);
     $novos_clientes = rand(15, 60);
@@ -26,8 +24,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_insights') {
     echo json_encode($data);
     exit;
 }
-
-// 👇 ENDPOINT PARA EXPORTAR RELATÓRIO (simulado)
 if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
     header('Content-Type: text/csv');
     header('Content-Disposition: attachment; filename="relatorio_insights.csv"');
@@ -58,7 +54,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
     <link rel="stylesheet" href="/styles/insights.css">
 </head>
 <body>
-    <!-- Overlay de carregamento -->
     <div id="loading-overlay" class="loading-overlay d-none">
         <div class="loading-spinner">
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
@@ -68,22 +63,15 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
         </div>
     </div>
 
-    <!-- Cabeçalho -->
     <div id="header-container"></div>
-
-    <!-- Container principal -->
     <div id="main-content-wrapper">
-        <!-- Sidebar -->
         <div id="sidebar-container"></div>
-
-        <!-- Conteúdo -->
         <div id="main-container">
             <div class="page-header mb-4">
                 <h1 class="page-title">Relatórios e Insights</h1>
                 <p class="page-subtitle">Acompanhe as principais métricas e indicadores do seu negócio</p>
             </div>
 
-            <!-- Filtros -->
             <div class="filters-section mb-4">
                 <div class="row">
                     <div class="col-md-3">
@@ -119,7 +107,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                 </div>
             </div>
 
-            <!-- Métricas -->
             <div class="metrics-section mb-4">
                 <div class="row">
                     <div class="col-xl-3 col-md-6 mb-3">
@@ -204,10 +191,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                 </div>
             </div>
 
-            <!-- Gráficos -->
             <div class="charts-section mb-4">
                 <div class="row">
-                    <!-- Gráfico de Vendas por Período -->
                     <div class="col-lg-8 mb-4">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
@@ -224,7 +209,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                         </div>
                     </div>
 
-                    <!-- Gráfico de Pizza -->
                     <div class="col-lg-4 mb-4">
                         <div class="card">
                             <div class="card-header">
@@ -238,7 +222,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                 </div>
 
                 <div class="row">
-                    <!-- Gráfico de Funil -->
                     <div class="col-lg-6 mb-4">
                         <div class="card">
                             <div class="card-header">
@@ -250,7 +233,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                         </div>
                     </div>
 
-                    <!-- Gráfico de Receita vs Custos -->
                     <div class="col-lg-6 mb-4">
                         <div class="card">
                             <div class="card-header">
@@ -264,10 +246,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                 </div>
             </div>
 
-            <!-- Tabelas -->
             <div class="tables-section">
                 <div class="row">
-                    <!-- Top Medicamentos -->
                     <div class="col-lg-6 mb-4">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
@@ -286,7 +266,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <!-- Dados serão inseridos via JS -->
                                         </tbody>
                                     </table>
                                 </div>
@@ -294,7 +273,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                         </div>
                     </div>
 
-                    <!-- Top Pacientes -->
                     <div class="col-lg-6 mb-4">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
@@ -313,7 +291,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <!-- Dados serão inseridos via JS -->
                                         </tbody>
                                     </table>
                                 </div>
@@ -322,7 +299,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                     </div>
                 </div>
 
-                <!-- Atendimentos Recentes -->
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
@@ -351,7 +327,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <!-- Dados serão inseridos via JS -->
                                         </tbody>
                                     </table>
                                 </div>
@@ -363,12 +338,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/insights.js"></script>
     <script src="/js/script.js"></script>
-
-    <!-- Carrega Header e Sidebar via JS -->
     <script>
         function loadTemplate(templatePath, containerId) {
             fetch(templatePath)
@@ -381,18 +353,15 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Carrega header e sidebar
             loadTemplate('/templates/header.php', 'header-container');
             loadTemplate('/templates/sidebar.php', 'sidebar-container');
 
-            // Inicializa funções globais
             if (typeof initializeSidebar === 'function') initializeSidebar();
             if (typeof initializeActionButtons === 'function') initializeActionButtons();
             if (typeof initializeTooltips === 'function') initializeTooltips();
             if (typeof initializeNavigation === 'function') initializeNavigation();
             if (typeof setActiveSidebarLink === 'function') setActiveSidebarLink();
 
-            // Função para carregar métricas
             function loadInsights(periodo = '30') {
                 document.getElementById('loading-overlay')?.classList.remove('d-none');
 
@@ -408,7 +377,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                         document.getElementById('clientes-variacao').textContent = data.clientes_variacao;
                         document.getElementById('conversao-variacao').textContent = data.conversao_variacao;
 
-                        // Aqui você pode carregar os gráficos também (usando Chart.js)
                         if (typeof initCharts === 'function') initCharts(periodo);
                         if (typeof loadTables === 'function') loadTables(periodo);
                     })
@@ -417,22 +385,14 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                         document.getElementById('loading-overlay')?.classList.add('d-none');
                     });
             }
-
-            // Carrega dados iniciais
             loadInsights();
-
-            // Aplicar filtros
             document.getElementById('aplicar-filtros')?.addEventListener('click', function() {
                 const periodo = document.getElementById('periodo-select').value;
                 loadInsights(periodo);
             });
-
-            // Exportar relatório
             document.getElementById('exportar-relatorio')?.addEventListener('click', function() {
                 window.location.href = '?action=exportar';
             });
-
-            // Refresh
             document.getElementById('refresh-vendas')?.addEventListener('click', function() {
                 loadInsights(document.getElementById('periodo-select').value);
             });
