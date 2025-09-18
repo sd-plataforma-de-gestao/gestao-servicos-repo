@@ -8,7 +8,6 @@ function initAtendimento() {
   let selectedType = null;
   let chatHistory = [];
 
-  // Função para adicionar mensagem no chat
   function addMessage(text, isUser = false) {
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
@@ -19,7 +18,6 @@ function initAtendimento() {
     return messageDiv;
   }
 
-  // Função para adicionar sugestão NÃO CLICÁVEL (apenas visual)
   function addSuggestion(text) {
     const suggestionDiv = document.createElement('div');
     suggestionDiv.classList.add('suggestion-bubble');
@@ -29,39 +27,32 @@ function initAtendimento() {
     return suggestionDiv;
   }
 
-  // Limpa o chat
   function clearChat() {
     chatMessages.innerHTML = '';
     chatHistory = [];
   }
 
-  // Evento nos botões de tipo
   tipoBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       selectedType = btn.getAttribute('data-tipo');
       tipoBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
-      // Mostra o chat
       chatContainer.classList.remove('d-none');
 
-      // Limpa e inicia chat
       clearChat();
       addMessage(`✅ Atendimento ${selectedType === 'agudo' ? 'agudo' : 'crônico'} iniciado.`, false);
       addMessage("Olá! Sou seu assistente farmacêutico. Como posso ajudar?", false);
 
-      // Primeiras sugestões gerais
       addSuggestion("Pergunte ao paciente sobre a duração dos sintomas.");
       addSuggestion("Verifique se há uso de outros medicamentos.");
       addSuggestion("Avalie sinais de alerta como febre alta ou falta de ar.");
 
-      // Foca no input
       userInput.disabled = false;
       userInput.focus();
     });
   });
 
-  // Enviar mensagem
   function sendMessage() {
     const message = userInput.value.trim();
     if (!message || !selectedType) return;
@@ -69,7 +60,6 @@ function initAtendimento() {
     addMessage(message, true);
     userInput.value = '';
 
-    // Envia para a API do Gemini
     callGeminiAPI(message);
   }
 
@@ -78,10 +68,8 @@ function initAtendimento() {
     if (e.key === 'Enter') sendMessage();
   });
 
-  // 🔑 SUA CHAVE DA API DO GEMINI
-  const GEMINI_API_KEY = 'AIzaSyBRlDmktgFcVV65lXSpat9Y9x9q8wDHcGk';
+  const GEMINI_API_KEY = 'AIzaSyBRlDmktgFcVV65lXSpat9Y9x9q8wDHcGk'; // CHAVE DA API DO GEMINI
 
-  // 🚀 Função para chamar a API do Gemini — MODELO CORRETO: gemini-pro
   async function callGeminiAPI(userMessage) {
     const thinkingElement = addMessage("Processando...", false);
 
@@ -114,7 +102,6 @@ Evite diagnósticos médicos — oriente sempre que o paciente procure um médic
     ];
 
     try {
-      // ✅ MODELO CORRIGIDO: "gemini-pro" (nome oficial na API v1)
       const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: {
@@ -132,14 +119,12 @@ Evite diagnósticos médicos — oriente sempre que o paciente procure um médic
         throw new Error(data.error?.message || 'Erro desconhecido na API');
       }
 
-      // Remove "Processando..."
       if (chatMessages.contains(thinkingElement)) {
         chatMessages.removeChild(thinkingElement);
       }
 
       let aiResponse = data.candidates[0]?.content?.parts[0]?.text || "Desculpe, não consegui formular uma resposta adequada.";
 
-      // Separa resposta da IA das sugestões
       let mainResponse = aiResponse;
       let suggestions = [];
 
@@ -150,10 +135,8 @@ Evite diagnósticos médicos — oriente sempre que o paciente procure um médic
         suggestions = suggestionLines.map(line => line.replace(/^[0-9]+\.\s*/, "").trim());
       }
 
-      // Exibe resposta principal
       addMessage(mainResponse, false);
 
-      // Exibe sugestões
       if (suggestions.length > 0) {
         suggestions.forEach(s => {
           if (s) addSuggestion(s);
@@ -165,7 +148,6 @@ Evite diagnósticos médicos — oriente sempre que o paciente procure um médic
         addSuggestion("Oriente repouso e hidratação se aplicável.");
       }
 
-      // Atualiza histórico
       chatHistory.push({ text: userMessage, isUser: true });
       chatHistory.push({ text: aiResponse, isUser: false });
 
@@ -180,6 +162,5 @@ Evite diagnósticos médicos — oriente sempre que o paciente procure um médic
     }
   }
 
-  // Inicializa estado
   userInput.disabled = true;
 }

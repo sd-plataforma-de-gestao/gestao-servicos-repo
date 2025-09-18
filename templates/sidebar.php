@@ -7,49 +7,49 @@
   
   <ul class="sidebar-nav">
     <li class="sidebar-item">
-      <a href="/index.html" class="sidebar-link active">
+      <a href="/index.php" class="sidebar-link active">
         <i class="fas fa-home"></i>
         <span>Início</span>
       </a>
     </li>
     
     <li class="sidebar-item dropdown-sidebar">
-      <a href="/templates/atendimento.html" class="sidebar-link">
+      <a href="/portal-repo-og/templates/atendimento.php" class="sidebar-link">
         <i class="fas fa-hospital-alt"></i>
         <span>Atendimento</span>
       </a>
     </li>
     
     <li class="sidebar-item">
-      <a href="/templates/paciente.html" class="sidebar-link">
+      <a href="/portal-repo-og/templates/paciente.php" class="sidebar-link">
         <i class="fa-solid fa-user-injured"></i>
         <span>Pacientes</span>
       </a>
     </li>
 
      <li class="sidebar-item">
-      <a href="/templates/farmaceutico.html" class="sidebar-link">
+      <a href="/portal-repo-og/templates/farmaceutico.php" class="sidebar-link">
         <i class="fa-solid fa-stethoscope"></i>
         <span>Farmacêuticos</span>
       </a>
     </li>
     
     <li class="sidebar-item">
-      <a href="/templates/medicamento.html" class="sidebar-link">
+      <a href="/portal-repo-og/templates/medicamento.php" class="sidebar-link">
         <i class="fa-solid fa-heart-pulse"></i>
         <span>Medicamentos</span>
       </a>
     </li>
 
     <li class="sidebar-item">
-      <a href="/templates/insights.html" class="sidebar-link">
+      <a href="/portal-repo-og/templates/insights.php" class="sidebar-link">
         <i class="fas fa-chart-line"></i>
         <span>Relatórios e Insights</span>
       </a>
     </li>
     
     <li class="sidebar-item">
-      <a href="/templates/unidade.html" class="sidebar-link">
+      <a href="/portal-repo-og/templates/unidade.php" class="sidebar-link">
         <i class="fas fa-building"></i>
         <span>Gestão de Unidades</span>
       </a>
@@ -63,11 +63,9 @@
     </li>
   </ul>
   
-  <!-- Sidebar toggle button for mobile -->
   <button class="sidebar-toggle" id="sidebarToggle">
     <i class="fas fa-bars"></i>
   </button>
 </nav>
 
-<!-- Sidebar overlay for mobile -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>

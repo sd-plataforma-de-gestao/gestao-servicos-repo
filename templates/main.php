@@ -1,11 +1,8 @@
 <div class="main-content">
-  <!-- Page Header -->
   <div class="page-header">
     <h2 class="page-title">Início</h2>
     <p class="page-subtitle">Visão geral dos atendimentos farmacêuticos</p>
   </div>
-
-  <!-- Stats Cards -->
   <div class="stats-container">
     <div class="stat-card">
       <div class="stat-content">
@@ -60,9 +57,7 @@
     </div>
   </div>
 
-  <!-- Main Content Grid -->
   <div class="content-grid">
-    <!-- Recent Activities -->
     <div class="activities-section">
       <div class="card">
         <div class="card-header">
@@ -133,7 +128,6 @@
       </div>
     </div>
 
-    <!-- Quick Actions -->
     <div class="actions-section">
       <div class="card">
         <div class="card-header">

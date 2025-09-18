@@ -1,16 +1,11 @@
-// Credenciais de login fixas para teste
 const CREDENCIAIS = {
     crf: "123456",
     senha: "ana123"
 };
-
-// Função que realiza a validação do login
 function fazerLogin() {
     const inputCRF = document.getElementById("CRF").value.trim();
     const inputSenha = document.getElementById("senha").value.trim();
     let mensagemEl = document.getElementById("mensagem");
-
-    // Se não existir um elemento de mensagem, cria um
     if (!mensagemEl) {
         mensagemEl = document.createElement("p");
         mensagemEl.id = "mensagem";
@@ -20,11 +15,7 @@ function fazerLogin() {
         const button = document.querySelector(".btn-login");
         button.parentNode.insertBefore(mensagemEl, button.nextSibling);
     }
-
-    // Limpa mensagem anterior
     mensagemEl.textContent = "";
-
-    // Valida as credenciais
     if (inputCRF === CREDENCIAIS.crf && inputSenha === CREDENCIAIS.senha) {
         mensagemEl.textContent = "Login bem-sucedido! Redirecionando...";
         mensagemEl.style.color = "green";
@@ -37,12 +28,11 @@ function fazerLogin() {
     }
 }
 
-// Adiciona o evento de clique ao botão "Entrar" quando a página carregar
 document.addEventListener("DOMContentLoaded", function () {
     const botaoEntrar = document.querySelector(".btn-login");
     if (botaoEntrar) {
         botaoEntrar.addEventListener("click", function (event) {
-            event.preventDefault(); // Evita comportamento padrão (útil se o botão estiver em um formulário no futuro)
+            event.preventDefault(); 
             fazerLogin();
         });
     } else {

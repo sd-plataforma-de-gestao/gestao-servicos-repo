@@ -1,5 +1,3 @@
-/* ===== MAIN CONTENT STYLES ===== */
-
 #main-container {
   flex: 1;
   padding: var(--spacing-lg);
@@ -7,8 +5,6 @@
   background: var(--background-color);
 }
 
-
-/* Page Header */
 .page-header {
   margin-bottom: var(--spacing-xl);
 }
@@ -26,7 +22,6 @@
   font-size: var(--font-size-base);
 }
 
-/* Stats Container */
 .stats-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -101,14 +96,12 @@
   font-size: var(--font-size-xl);
 }
 
-/* Content Grid */
 .content-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: var(--spacing-xl);
 }
 
-/* Card Components */
 .card {
   background: white;
   border: 1px solid var(--border-color);
@@ -136,7 +129,6 @@
   padding: var(--spacing-lg);
 }
 
-/* Activities Section */
 .activity-list {
   display: flex;
   flex-direction: column;
@@ -279,7 +271,6 @@
   color: rgba(255, 255, 255, 0.8);
 }
 
-/* Responsive Design */
 @media (max-width: 1200px) {
   .content-grid {
     grid-template-columns: 1fr;
@@ -323,7 +314,6 @@
 }   
 
 .page-wrapper {
-  display: flex; /* Alinha a sidebar e o conteúdo lado a lado */
-  padding-top: var(--header-height); /* Cria o espaço para o header fixo */
+  display: flex;
+  padding-top: var(--header-height); 
 }
-

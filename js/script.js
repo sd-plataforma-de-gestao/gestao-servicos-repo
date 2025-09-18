@@ -1,23 +1,16 @@
-/* ===== VITALLY DASHBOARD JAVASCRIPT ===== */
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize all components
     initializeSidebar();
     initializeActionButtons();
     initializeTooltips();
     initializeNavigation();
-    
-    // Load dynamic data
     loadDashboardData();
 });
 
-/* ===== SIDEBAR FUNCTIONALITY ===== */
 function initializeSidebar() {
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
     
-    // Toggle sidebar on mobile
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', function() {
             sidebar.classList.toggle('show');
@@ -25,7 +18,6 @@ function initializeSidebar() {
         });
     }
     
-    // Close sidebar when clicking overlay
     if (overlay) {
         overlay.addEventListener('click', function() {
             sidebar.classList.remove('show');
@@ -33,16 +25,12 @@ function initializeSidebar() {
         });
     }
     
-    // Handle sidebar navigation
     const sidebarLinks = document.querySelectorAll('.sidebar-link');
     sidebarLinks.forEach(link => {
         link.addEventListener('click', function(e) {
-            // Remove active class from all links
             sidebarLinks.forEach(l => l.classList.remove('active'));
-            // Add active class to clicked link
             this.classList.add('active');
             
-            // Close mobile sidebar after navigation
             if (window.innerWidth <= 768) {
                 sidebar.classList.remove('show');
                 overlay.classList.remove('show');
@@ -51,7 +39,6 @@ function initializeSidebar() {
     });
 }
 
-/* ===== ACTION BUTTONS ===== */
 function initializeActionButtons() {
     const actionButtons = document.querySelectorAll('.action-btn');
     
@@ -82,9 +69,7 @@ function handleActionClick(action) {
     }
 }
 
-/* ===== MODAL FUNCTIONS ===== */
 function showModal(title, content) {
-    // Create modal dynamically
     const modal = document.createElement('div');
     modal.className = 'modal fade';
     modal.innerHTML = `
@@ -109,7 +94,6 @@ function showModal(title, content) {
     const bootstrapModal = new bootstrap.Modal(modal);
     bootstrapModal.show();
     
-    // Remove modal from DOM after hiding
     modal.addEventListener('hidden.bs.modal', function() {
         document.body.removeChild(modal);
     });
@@ -194,8 +178,6 @@ function showScheduleModal() {
         document.body.removeChild(modal);
     });
 }
-
-/* ===== SEARCH AND SCHEDULE FUNCTIONS ===== */
 function performSearch() {
     const searchInput = document.getElementById('searchInput');
     const searchResults = document.getElementById('searchResults');
@@ -206,7 +188,6 @@ function performSearch() {
         return;
     }
     
-    // Simulate search results
     const mockResults = [
         { name: 'Maria Santos', cpf: '123.456.789-01', lastVisit: '2024-01-15' },
         { name: 'João Silva', cpf: '987.654.321-09', lastVisit: '2024-01-10' }
@@ -236,10 +217,7 @@ function scheduleAppointment() {
         return;
     }
     
-    // Simulate scheduling
     showNotification('Retorno agendado com sucesso!', 'success');
-    
-    // Close modal
     const modal = document.querySelector('.modal.show');
     if (modal) {
         const bootstrapModal = bootstrap.Modal.getInstance(modal);
@@ -250,13 +228,11 @@ function scheduleAppointment() {
 function generateReport() {
     showNotification('Gerando relatório...', 'info');
     
-    // Simulate report generation
     setTimeout(() => {
         showNotification('Relatório gerado com sucesso!', 'success');
     }, 2000);
 }
 
-/* ===== NOTIFICATIONS ===== */
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `alert alert-${type} alert-dismissible fade show notification`;
@@ -275,7 +251,6 @@ function showNotification(message, type = 'info') {
     
     document.body.appendChild(notification);
     
-    // Auto remove after 5 seconds
     setTimeout(() => {
         if (notification.parentNode) {
             notification.remove();
@@ -283,7 +258,6 @@ function showNotification(message, type = 'info') {
     }, 5000);
 }
 
-/* ===== TOOLTIPS ===== */
 function initializeTooltips() {
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
     tooltipTriggerList.map(function(tooltipTriggerEl) {
@@ -291,9 +265,7 @@ function initializeTooltips() {
     });
 }
 
-/* ===== NAVIGATION ===== */
 function initializeNavigation() {
-    // Handle dropdown menus in sidebar
     const dropdownToggles = document.querySelectorAll('[data-bs-toggle="collapse"]');
     dropdownToggles.forEach(toggle => {
         toggle.addEventListener('click', function(e) {
@@ -301,13 +273,11 @@ function initializeNavigation() {
             const target = document.querySelector(this.getAttribute('data-bs-target'));
             if (target) {
                 const isShowing = target.classList.contains('show');
-                // Close all other dropdowns
                 document.querySelectorAll('.collapse.show').forEach(collapse => {
                     if (collapse !== target) {
                         collapse.classList.remove('show');
                     }
                 });
-                // Toggle current dropdown
                 target.classList.toggle('show', !isShowing);
                 this.setAttribute('aria-expanded', !isShowing);
             }
@@ -315,22 +285,17 @@ function initializeNavigation() {
     });
 }
 
-/* ===== DASHBOARD DATA ===== */
 function loadDashboardData() {
-    // Simulate loading real-time data
     updateStats();
     updateActivities();
     
-    // Update data every 30 seconds
     setInterval(updateStats, 30000);
     setInterval(updateActivities, 60000);
 }
 
 function updateStats() {
-    // Simulate real-time stat updates
     const statValues = document.querySelectorAll('.stat-value');
     statValues.forEach((stat, index) => {
-        // Add subtle animation for updates
         stat.style.opacity = '0.7';
         setTimeout(() => {
             stat.style.opacity = '1';
@@ -339,17 +304,14 @@ function updateStats() {
 }
 
 function updateActivities() {
-    // Add timestamp to show last update
     const now = new Date().toLocaleTimeString('pt-BR');
     console.log(`Atividades atualizadas às ${now}`);
 }
 
-/* ===== RESPONSIVE HANDLERS ===== */
 window.addEventListener('resize', function() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
     
-    // Close mobile sidebar on resize to desktop
     if (window.innerWidth > 768 && sidebar) {
         sidebar.classList.remove('show');
         if (overlay) {
@@ -358,7 +320,6 @@ window.addEventListener('resize', function() {
     }
 });
 
-/* ===== UTILITY FUNCTIONS ===== */
 function formatDate(date) {
     return new Date(date).toLocaleDateString('pt-BR');
 }

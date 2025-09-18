@@ -1,12 +1,8 @@
-/* ===== ESTILOS ESPECÍFICOS DA PÁGINA DE RELATÓRIOS ===== */
-
-/* Cabeçalho da Página */
 .page-header {
   border-bottom: 1px solid var(--border-color);
   padding-bottom: var(--spacing-lg);
 }
 
-/* Seção de Filtros */
 .filters-section {
   background: white;
   border-radius: var(--border-radius);
@@ -34,7 +30,6 @@
   box-shadow: 0 0 0 0.2rem rgba(26, 109, 64, 0.15);
 }
 
-/* Cards de Métricas */
 .metrics-section .metric-card {
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
@@ -81,7 +76,6 @@
   font-weight: 500;
 }
 
-/* Seção de Gráficos */
 .charts-section .card {
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
@@ -109,7 +103,6 @@
   padding: var(--spacing-lg);
 }
 
-/* Controles dos Gráficos */
 .chart-controls .btn {
   border-radius: var(--border-radius-sm);
   font-size: var(--font-size-sm);
@@ -130,13 +123,11 @@
   color: white;
 }
 
-/* Canvas dos Gráficos */
 .charts-section canvas {
   max-height: 300px;
   width: 100% !important;
 }
 
-/* Seção de Tabelas */
 .tables-section .card {
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
@@ -176,7 +167,6 @@
   background-color: rgba(26, 109, 64, 0.05);
 }
 
-/* Badges de Status */
 .status-badge {
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--border-radius-sm);
@@ -210,7 +200,6 @@
   border: 1px solid #b3d7ff;
 }
 
-/* Botões de Ação */
 .action-buttons .btn {
   padding: var(--spacing-xs) var(--spacing-sm);
   font-size: var(--font-size-xs);
@@ -222,7 +211,6 @@
   margin-right: 0;
 }
 
-/* Indicadores de Variação */
 .variacao-positiva {
   color: var(--success-color) !important;
 }
@@ -235,7 +223,6 @@
   color: var(--text-secondary) !important;
 }
 
-/* Loading Overlay */
 .loading-overlay {
   position: fixed;
   top: 0;
@@ -318,7 +305,6 @@
   }
 }
 
-/* Animações */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -349,7 +335,6 @@
   animation: slideIn 0.3s ease-out;
 }
 
-/* Estados de Loading para Cards */
 .card.loading {
   opacity: 0.7;
   pointer-events: none;
@@ -375,7 +360,6 @@
   }
 }
 
-/* Tooltips Customizados */
 .custom-tooltip {
   position: relative;
   cursor: help;
@@ -404,7 +388,6 @@
   visibility: visible;
 }
 
-/* Scroll personalizado para tabelas */
 .table-responsive::-webkit-scrollbar {
   height: 6px;
 }
@@ -423,7 +406,6 @@
   background: var(--text-secondary);
 }
 
-/* Estilos para impressão */
 @media print {
   .filters-section,
   .chart-controls,
@@ -442,4 +424,3 @@
     color: black !important;
   }
 }
-
