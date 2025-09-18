@@ -14,43 +14,42 @@
     </li>
     
     <li class="sidebar-item dropdown-sidebar">
-      
-      <a href="#" class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#atendimentoSubmenu" aria-expanded="false">
+      <a href="/portal-repo-og/templates/atendimento.php" class="sidebar-link">
         <i class="fas fa-hospital-alt"></i>
         <span>Atendimento</span>
-        <i class="fas fa-chevron-down sidebar-arrow"></i>
       </a>
-      <div class="collapse" id="atendimentoSubmenu">
-        <ul class="sidebar-submenu">
-          <li><a class="sidebar-sublink" href="#">Atendimento Crônico</a></li>
-          <li><a class="sidebar-sublink" href="#">Atendimento Agudo</a></li>
-        </ul>
-      </div>
     </li>
     
     <li class="sidebar-item">
       <a href="/portal-repo-og/templates/paciente.php" class="sidebar-link">
-        <i class="fas fa-users"></i>
+        <i class="fa-solid fa-user-injured"></i>
         <span>Pacientes</span>
       </a>
     </li>
 
      <li class="sidebar-item">
       <a href="/portal-repo-og/templates/farmaceutico.php" class="sidebar-link">
-        <i class="fas fa-users"></i>
+        <i class="fa-solid fa-stethoscope"></i>
         <span>Farmacêuticos</span>
-      </a>  
+      </a>
     </li>
     
     <li class="sidebar-item">
-      <a href="#" class="sidebar-link">
+      <a href="/portal-repo-og/templates/medicamento.php" class="sidebar-link">
+        <i class="fa-solid fa-heart-pulse"></i>
+        <span>Medicamentos</span>
+      </a>
+    </li>
+
+    <li class="sidebar-item">
+      <a href="/portal-repo-og/templates/insights.php" class="sidebar-link">
         <i class="fas fa-chart-line"></i>
         <span>Relatórios e Insights</span>
       </a>
     </li>
     
     <li class="sidebar-item">
-      <a href="#" class="sidebar-link">
+      <a href="/portal-repo-og/templates/unidade.php" class="sidebar-link">
         <i class="fas fa-building"></i>
         <span>Gestão de Unidades</span>
       </a>
