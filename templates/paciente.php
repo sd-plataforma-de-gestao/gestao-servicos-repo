@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header("Location: paciente.php");
         }
     }
-
+  }
     $stmt->close();
     exit;
 ?>
