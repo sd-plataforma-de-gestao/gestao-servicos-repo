@@ -19,11 +19,6 @@ SET time_zone = "+00:00";
 --
 -- Banco de dados: `farmacia`
 --
-<<<<<<< HEAD
-
-=======
- 
->>>>>>> aebba10 (add: adicionando cadastro do farmaceutico e paciente)
 -- --------------------------------------------------------
 
 --
@@ -107,13 +102,8 @@ CREATE TABLE IF NOT EXISTS `pacientes` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Restrições para tabelas despejadas
---
-
---
 -- Restrições para tabelas `atendimentos`
---
+
 ALTER TABLE `atendimentos`
   ADD CONSTRAINT `atendimentos_ibfk_1` FOREIGN KEY (`paciente_id`) REFERENCES `pacientes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `atendimentos_ibfk_2` FOREIGN KEY (`farmaceutico_id`) REFERENCES `farmaceuticos` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -123,3 +113,57 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+ALTER TABLE `atendimentos`
+  ADD COLUMN `tipo_atendimento` ENUM('Primeira Consulta', 'Retorno', 'Acompanhamento', 'Orientação') NOT NULL DEFAULT 'Primeira Consulta' AFTER `farmaceutico_id`,
+  ADD COLUMN `status_atendimento` ENUM('Agendado', 'Concluído', 'Cancelado', 'Em Andamento') NOT NULL DEFAULT 'Concluído' AFTER `tipo_atendimento`,
+  ADD COLUMN `data_agendamento` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `criado_em`,
+  ADD COLUMN `notas_farmaceutico` TEXT DEFAULT NULL AFTER `respostas_json`;
+
+ALTER TABLE `pacientes`
+  ADD COLUMN `taxa_adesao` DECIMAL(5,2) DEFAULT 0.00 COMMENT 'Percentual de adesão ao tratamento, calculado periodicamente.' AFTER `tipo_paciente`;
+
+CREATE TABLE IF NOT EXISTS `kpis_diarios` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `data` DATE NOT NULL,
+  `total_atendimentos` INT(11) DEFAULT 0,
+  `atendimentos_cronicos` INT(11) DEFAULT 0,
+  `atendimentos_agudos` INT(11) DEFAULT 0,
+  `taxa_adesao_media` DECIMAL(5,2) DEFAULT 0.00,
+  `criado_em` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_data_unica` (`data`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+CREATE TABLE IF NOT EXISTS `agendamentos` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `paciente_id` INT(11) NOT NULL,
+  `farmaceutico_id` INT(11) NOT NULL,
+  `tipo_consulta` ENUM('Retorno', 'Acompanhamento', 'Nova Consulta') NOT NULL,
+  `status` ENUM('Agendado', 'Confirmado', 'Cancelado', 'Realizado') NOT NULL DEFAULT 'Agendado',
+  `notas` TEXT DEFAULT NULL,
+  `criado_em` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+  PRIMARY KEY (`id`),
+  KEY `idx_data_hora` (`data_hora_agendamento`),
+  FOREIGN KEY (`paciente_id`) REFERENCES `pacientes`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`farmaceutico_id`) REFERENCES `farmaceuticos`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- TABELA PIVÔ: Essencial para o "Top 10 Medicamentos" e outras análises
+
+CREATE TABLE IF NOT EXISTS `atendimento_medicamentos` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `atendimento_id` int(11) NOT NULL,
+  `medicamento_id` int(11) NOT NULL,
+  `quantidade_dispensada` int(11) NOT NULL DEFAULT 1,
+  `preco_no_momento` decimal(10,2) NOT NULL COMMENT 'Registra o preço do medicamento na hora do atendimento',
+  PRIMARY KEY (`id`),
+  
+  -- Chave única para evitar duplicatas (mesmo medicamento no mesmo atendimento)
+  UNIQUE KEY `idx_atendimento_medicamento` (`atendimento_id`, `medicamento_id`), 
+  
+  -- Chaves estrangeiras para garantir a integridade dos dados
+  CONSTRAINT `fk_atendimento` FOREIGN KEY (`atendimento_id`) REFERENCES `atendimentos` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_medicamento` FOREIGN KEY (`medicamento_id`) REFERENCES `medicamentos` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
