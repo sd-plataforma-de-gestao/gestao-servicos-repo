@@ -35,6 +35,27 @@ function initAtendimento() {
     chatHistory = [];
   }
 
+  //Finaliza Atendimento
+  function finalizarAtendimento() {
+    const chatData = JSON.stringify(chatHistory);
+
+    fetch('atendimento.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: chatData
+    })
+    .then(response => response.text())
+    .then(result => {
+      console.log('Chat salvo:', result);
+      alert(result); // mostra resposta do PHP
+    })
+    .catch(error => {
+      console.error('Erro ao salvar o chat:', error);
+      alert('Erro ao salvar o atendimento.');
+    });
+}
+
+
   // Evento nos botões de tipo
   tipoBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -48,7 +69,7 @@ function initAtendimento() {
       // Limpa e inicia chat
       clearChat();
       addMessage(`✅ Atendimento ${selectedType === 'agudo' ? 'agudo' : 'crônico'} iniciado.`, false);
-      addMessage("Olá! Sou seu assistente farmacêutico. Como posso ajudar?", false);
+      addMessage("Olá! Sou seu assistente farmacêutico. De inicio, vamos identificar o paciente, Digite o nome o CPF do paciente", false);
 
       // Primeiras sugestões gerais
       addSuggestion("Pergunte ao paciente sobre a duração dos sintomas.");
@@ -69,6 +90,11 @@ function initAtendimento() {
     addMessage(message, true);
     userInput.value = '';
 
+    if (message.toLowerCase() === "finalizar atendimento") {
+      finalizarAtendimento();
+      return;
+    }
+
     // Envia para a API do Gemini
     callGeminiAPI(message);
   }
@@ -86,22 +112,34 @@ function initAtendimento() {
     const thinkingElement = addMessage("Processando...", false);
 
     const systemPrompt = `
-Você é um assistente farmacêutico virtual, especializado em auxiliar farmacêuticos no atendimento ao paciente.
-O tipo de atendimento é: ${selectedType === 'agudo' ? 'Agudo (sintomas recentes)' : 'Crônico (acompanhamento contínuo)'}.
+Você é um assistente farmacêutico virtual especializado em sintomas respiratórios, seguindo o algoritmo clínico para espirro e congestão nasal.
 
-REGRAS:
-1. Responda sempre com linguagem clara, profissional e empática.
-2. Use parágrafos curtos para melhor leitura.
-3. AO FINAL da sua resposta, inclua exatamente 3 sugestões para o farmacêutico, no formato:
+BASE DO ALGORITMO (seguir esta sequência):
+1. TEMPO: Duração dos sintomas (até 10 dias ou mais de 10 dias)
+2. CARACTERÍSTICAS: Tipo de secreção, cor, consistência
+3. INTENSIDADE: Leve, moderada ou grave
+4. FATORES DESENCADEANTES: Alergias, ambiente, situações específicas
+5. SINTOMAS ASSOCIADOS: Febre, dor, mal-estar
+6. PERFIL: Idade, condições especiais (gestação, comorbidades)
+7. HISTÓRICO: Medicamentos em uso, tratamentos anteriores
 
+DIRETRIZES:
+- Inicie identificando o paciente (nome/CPF)
+- Siga a sequência do algoritmo acima
+- Adapte as perguntas conforme as respostas anteriores
+- Identifique sinais de alerta que requerem encaminhamento médico
+- Para sintomas até 10 dias sem alertas: sugira tratamento não farmacológico
+- Para sintomas persistentes (>10 dias) ou com alertas: oriente busca por médico
+- Use linguagem clara, profissional e empática
+- Evite diagnósticos médicos - oriente sempre busca por médico quando necessário
+
+FORMATO DE RESPOSTA:
+[SUA RESPOSTA PRINCIPAL]
 [SUGESTÕES]
-1. Sugestão 1 aqui.
-2. Sugestão 2 aqui.
-3. Sugestão 3 aqui.
-
-NÃO escreva nada depois das sugestões. NÃO use markdown. NÃO formate em negrito ou itálico.
-Evite diagnósticos médicos — oriente sempre que o paciente procure um médico quando necessário.
-    `;
+1. [Próxima pergunta sugerida 1]
+2. [Próxima pergunta sugerida 2]
+3. [Próxima pergunta sugerida 3]
+`;
 
     const messages = [
       { role: "user", parts: [{ text: systemPrompt }] },
