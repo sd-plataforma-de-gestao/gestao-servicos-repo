@@ -1,41 +1,59 @@
-const CREDENCIAIS = {
-    crf: "123456",
-    senha: "ana123"
-};
-function fazerLogin() {
-    const inputCRF = document.getElementById("CRF").value.trim();
-    const inputSenha = document.getElementById("senha").value.trim();
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("loginForm");
+    if (!form) {
+        console.error("Formulário #loginForm não encontrado.");
+        return;
+    }
+
+    // Cria o elemento de mensagem se não existir
     let mensagemEl = document.getElementById("mensagem");
     if (!mensagemEl) {
         mensagemEl = document.createElement("p");
         mensagemEl.id = "mensagem";
-        mensagemEl.style.marginTop = "10px";
+        mensagemEl.style.marginTop = "15px";
         mensagemEl.style.fontSize = "0.9em";
         mensagemEl.style.textAlign = "center";
-        const button = document.querySelector(".btn-login");
-        button.parentNode.insertBefore(mensagemEl, button.nextSibling);
+        form.appendChild(mensagemEl);
     }
-    mensagemEl.textContent = "";
-    if (inputCRF === CREDENCIAIS.crf && inputSenha === CREDENCIAIS.senha) {
-        mensagemEl.textContent = "Login bem-sucedido! Redirecionando...";
-        mensagemEl.style.color = "green";
-        setTimeout(() => {
-            window.location.href = "/index.html";
-        }, 1000);
-    } else {
-        mensagemEl.textContent = "CRF ou senha incorretos.";
-        mensagemEl.style.color = "red";
-    }
-}
 
-document.addEventListener("DOMContentLoaded", function () {
-    const botaoEntrar = document.querySelector(".btn-login");
-    if (botaoEntrar) {
-        botaoEntrar.addEventListener("click", function (event) {
-            event.preventDefault(); 
-            fazerLogin();
-        });
-    } else {
-        console.warn("Botão com classe 'btn-login' não encontrado.");
-    }
+    form.addEventListener("submit", async function (event) {
+        event.preventDefault(); // Impede recarregar a página
+
+        const formData = new FormData(form);
+        const crf = formData.get("crf")?.trim();
+        const senha = formData.get("senha")?.trim();
+
+        if (!crf || !senha) {
+            mensagemEl.textContent = "Preencha todos os campos.";
+            mensagemEl.style.color = "red";
+            return;
+        }
+
+        mensagemEl.textContent = "Verificando...";
+        mensagemEl.style.color = "#007bff";
+
+        try {
+            const response = await fetch("/login.php", {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                mensagemEl.textContent = "Login bem-sucedido! Redirecionando...";
+                mensagemEl.style.color = "green";
+                setTimeout(() => {
+                    window.location.href = "/index.php"; // Alterado para .php
+                }, 1200);
+            } else {
+                mensagemEl.textContent = result.message || "Erro desconhecido.";
+                mensagemEl.style.color = "red";
+            }
+        } catch (error) {
+            mensagemEl.textContent = "Erro de conexão com o servidor.";
+            mensagemEl.style.color = "red";
+            console.error("Erro:", error);
+        }
+    });
 });
