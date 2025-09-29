@@ -1,13 +1,12 @@
 <?php
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "farmacia";
+$host = 'localhost';
+$db   = 'farmacia';
+$user = 'root';
+$pass = '';
 
-$conn = mysqli_connect($host, $user, $pass, $db);
+$conn = new mysqli($host, $user, $pass, $db);
 
-if (!$conn) {
-    die("Erro na conexão: " . mysqli_connect_error());
+if ($conn->connect_error) {
+    die("Conexão falhou: " . $conn->connect_error);
 }
 ?>
-    

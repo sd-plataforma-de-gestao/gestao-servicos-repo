@@ -1,11 +1,19 @@
 <?php
+//include_once __DIR__ . '/../config/auth.php';
+
+//if (!Auth::isAuthenticated()) {
+    //header("Location: /portal-repo-og/templates/login.php");
+    //exit();
+//}
+//?>
+
+<?php
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 include("../config/database.php");
 
-// ✅ Endpoint para carregar apenas a lista — independente de ser AJAX
 if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     $sql = "SELECT id, nome, principio_ativo, laboratorio, quantidade, data_validade, preco FROM medicamentos ORDER BY nome ASC";
     $result = $conn->query($sql);
@@ -29,7 +37,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     else:
         echo '<p class="text-muted mt-3">Nenhum medicamento cadastrado.</p>';
     endif;
-    exit; // ⚠️ IMPEDIR EXECUÇÃO DO RESTANTE
+    exit; 
 }
 
 // Bloco de cadastro — agora SEM depender de $isAjax para sair

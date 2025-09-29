@@ -1,3 +1,11 @@
+<?php
+//include_once __DIR__ . '/../config/auth.php';
+
+//if (!Auth::isAuthenticated()) {
+    //header("Location: /portal-repo-og/templates/login.php");
+    //exit();
+//}
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>

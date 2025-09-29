@@ -1,6 +1,14 @@
 <?php include("../config/database.php"); ?>
 
 <?php
+include_once __DIR__ . '/../config/auth.php';
+
+if (!Auth::isAuthenticated()) {
+    header("Location: /portal-repo-og/templates/login.php");
+    exit();
+}
+?>
+<?php
 if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     $sql = "SELECT * FROM unidades ORDER BY nome ASC";
     $result = mysqli_query($conn, $sql);

@@ -1,33 +1,73 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const formPaciente = document.getElementById("formPaciente");
-    const pacienteModalElement = document.getElementById("pacienteModal");
-    const listaPacientes = document.getElementById("lista-pacientes");
+// Função para formatar CRF: 2 letras maiúsculas + até 6 dígitos
+function formatarCRF(valor) {
+    // Remove tudo que não for letra ou número
+    valor = valor.replace(/[^A-Za-z0-9]/g, '');
+    // Limita a 8 caracteres (2 letras + 6 dígitos)
+    if (valor.length > 8) valor = valor.substring(0, 8);
+    // Converte para maiúsculo
+    return valor.toUpperCase();
+}
 
-    if (!formPaciente || !listaPacientes) {
-        console.error("❌ Elementos não encontrados: formPaciente ou listaPacientes");
+// Aplica máscara em tempo real
+document.addEventListener('input', function(e) {
+    if (e.target.matches('#farmaceuticoModal input[name="crf"]')) {
+        const valorAtual = e.target.value;
+        const valorFormatado = formatarCRF(valorAtual);
+        if (valorAtual !== valorFormatado) {
+            const pos = e.target.selectionStart;
+            e.target.value = valorFormatado;
+            const novaPos = pos + (valorFormatado.length - valorAtual.length);
+            e.target.setSelectionRange(novaPos, novaPos);
+        }
+    }
+});
+
+// Impede digitar além do limite (8 caracteres)
+document.addEventListener('keydown', function(e) {
+    if (e.target.matches('#farmaceuticoModal input[name="crf"]')) {
+        if (e.target.value.length >= 8 && 
+            !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+            e.preventDefault();
+        }
+    }
+});
+
+// Garante maxlength
+document.addEventListener('focusin', function(e) {
+    if (e.target.matches('#farmaceuticoModal input[name="crf"]')) {
+        e.target.setAttribute('maxlength', '8');
+    }
+});
+
+// --- RESTANTE DO CÓDIGO (submit, recarregar lista, etc) ---
+
+document.addEventListener("DOMContentLoaded", function () {
+    const formFarmaceutico = document.getElementById("formFarmaceutico");
+    const farmaceuticoModalElement = document.getElementById("farmaceuticoModal");
+    const listaFarmaceuticos = document.getElementById("lista-farmaceuticos");
+
+    if (!formFarmaceutico || !listaFarmaceuticos) {
+        console.error("❌ Elementos não encontrados");
         return;
     }
 
     function recarregarLista() {
-        fetch('paciente.php?action=load_list')
+        fetch('farmaceutico.php?action=load_list')
             .then(r => r.text())
             .then(html => {
-                listaPacientes.innerHTML = html;
+                listaFarmaceuticos.innerHTML = html;
             })
             .catch(err => {
                 console.error("Erro ao recarregar lista:", err);
-                listaPacientes.innerHTML = '<p class="text-danger">Erro ao carregar a lista.</p>';
+                listaFarmaceuticos.innerHTML = '<p class="text-danger">Erro ao carregar a lista.</p>';
             });
     }
 
-    formPaciente.addEventListener("submit", function (e) {
+    formFarmaceutico.addEventListener("submit", function (e) {
         e.preventDefault();
 
-        const btn = formPaciente.querySelector('[type="submit"]');
-        if (!btn) {
-            console.error("❌ Botão de cadastro não encontrado!");
-            return;
-        }
+        const btn = formFarmaceutico.querySelector('[type="submit"]');
+        if (!btn) return;
 
         if (btn.disabled) return;
 
@@ -35,9 +75,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const originalText = btn.innerHTML;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
 
-        const formData = new FormData(formPaciente);
+        const formData = new FormData(formFarmaceutico);
 
-        fetch('paciente.php', {
+        fetch('farmaceutico.php', {
             method: "POST",
             body: formData,
             headers: { "X-Requested-With": "XMLHttpRequest" }
@@ -45,11 +85,11 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => response.text())
         .then(result => {
             if (result.trim() === "success") {
-                const modal = bootstrap.Modal.getInstance(pacienteModalElement);
+                const modal = bootstrap.Modal.getInstance(farmaceuticoModalElement);
                 if (modal) modal.hide();
-                formPaciente.reset();
+                formFarmaceutico.reset();
                 recarregarLista();
-                alert("✅ Paciente cadastrado com sucesso!");
+                alert("✅ Farmacêutico cadastrado com sucesso!");
             } else {
                 alert("❌ " + result.replace("error: ", ""));
             }
