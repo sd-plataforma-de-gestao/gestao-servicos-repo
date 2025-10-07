@@ -7,7 +7,7 @@
   
   <ul class="sidebar-nav">
     <li class="sidebar-item">
-      <a href="/index.php" class="sidebar-link active">
+      <a href="/portal-repo-og/index.php" class="sidebar-link active">
         <i class="fas fa-home"></i>
         <span>Início</span>
       </a>

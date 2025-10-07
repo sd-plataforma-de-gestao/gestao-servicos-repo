@@ -15,11 +15,11 @@
   <link rel="icon" href="/assets/favicon.png" type="image/png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="stylesheet" href="styles/global.css">
-  <link rel="stylesheet" href="styles/header.css">
-  <link rel="stylesheet" href="styles/sidebar.css">
-  <link rel="stylesheet" href="styles/main.css">
-  <link rel="stylesheet" href="styles/responsive.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/global.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/header.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/sidebar.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/main.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/responsive.css">
 </head>
 <body>
     <div id="header-container"></div>
@@ -31,7 +31,7 @@
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/script.js"></script>
+    <script src="/portal-repo-og/js/script.js"></script>
     
     <script>
       async function loadTemplate(templatePath, containerId) {
@@ -45,9 +45,9 @@
       }
     
       document.addEventListener('DOMContentLoaded', async function() {
-        await loadTemplate('templates/header.php', 'header-container');
-        await loadTemplate('templates/sidebar.php', 'sidebar-container');
-        await loadTemplate('templates/main.php', 'main-container');
+        await loadTemplate('/portal-repo-og/templates/header.php', 'header-container');
+        await loadTemplate('/portal-repo-og/templates/sidebar.php', 'sidebar-container');
+        await loadTemplate('/portal-repo-og/templates/main.php', 'main-container');
       });
     </script>
 </body>

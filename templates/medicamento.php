@@ -14,13 +14,57 @@ error_reporting(E_ALL);
 
 include("../config/database.php");
 
+// Carrega lista via AJAX com suporte a filtros
 if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
-    $sql = "SELECT id, nome, principio_ativo, laboratorio, quantidade, data_validade, preco FROM medicamentos ORDER BY nome ASC";
-    $result = $conn->query($sql);
+    $where = [];
+    $params = [];
 
-    if ($result && $result->num_rows > 0):
+    // Filtro de busca: nome ou princípio ativo
+    if (!empty($_GET['search'])) {
+        $search = '%' . trim($_GET['search']) . '%';
+        $where[] = "(nome LIKE ? OR principio_ativo LIKE ?)";
+        $params[] = $search;
+        $params[] = $search;
+    }
+
+    // Filtro por status de estoque
+    if (!empty($_GET['filtro'])) {
+        switch ($_GET['filtro']) {
+            case 'disponivel':
+                $where[] = "quantidade > 10";
+                break;
+            case 'baixo':
+                $where[] = "quantidade > 0 AND quantidade <= 10";
+                break;
+            case 'esgotado':
+                $where[] = "quantidade = 0";
+                break;
+        }
+    }
+
+    $sql = "SELECT id, nome, principio_ativo, laboratorio, quantidade, data_validade, preco FROM medicamentos";
+    if (!empty($where)) {
+        $sql .= " WHERE " . implode(" AND ", $where);
+    }
+    $sql .= " ORDER BY nome ASC";
+
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        echo '<p class="text-danger">Erro ao preparar a consulta.</p>';
+        exit;
+    }
+
+    if (!empty($params)) {
+        $types = str_repeat('s', count($params));
+        $stmt->bind_param($types, ...$params);
+    }
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result && mysqli_num_rows($result) > 0):
         echo '<table class="table table-striped table-hover mt-3"><thead class="table-light"><tr><th>Medicamento</th><th>Princípio Ativo</th><th>Fabricante</th><th>Estoque</th><th>Validade</th><th>Preço</th></tr></thead><tbody>';
-        while ($row = $result->fetch_assoc()):
+        while ($row = mysqli_fetch_assoc($result)):
             $estoque = (int)$row['quantidade'];
             $classe_estoque = $estoque > 10 ? 'success' : ($estoque > 0 ? 'warning' : 'danger');
             $status_estoque = $estoque > 10 ? 'Disponível' : ($estoque > 0 ? 'Baixo estoque' : 'Esgotado');
@@ -35,9 +79,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
         endwhile;
         echo '</tbody></table>';
     else:
-        echo '<p class="text-muted mt-3">Nenhum medicamento cadastrado.</p>';
+        echo '<p class="text-muted mt-3">Nenhum medicamento encontrado.</p>';
     endif;
-    exit; 
+
+    $stmt->close();
+    exit;
 }
 
 // Bloco de cadastro — agora SEM depender de $isAjax para sair
@@ -305,6 +351,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         loadTemplate('/portal-repo-og/templates/header.php', 'header-container');
         loadTemplate('/portal-repo-og/templates/sidebar.php', 'sidebar-container');
     });
+
+    // Função para carregar a lista de medicamentos com filtros
+function carregarListaComFiltros() {
+    const busca = document.getElementById('buscaMedicamento').value.trim();
+    const filtro = document.getElementById('filtroStatus').value;
+
+    let url = 'medicamento.php?action=load_list';
+    if (busca) url += '&search=' + encodeURIComponent(busca);
+    if (filtro) url += '&filtro=' + encodeURIComponent(filtro);
+
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('lista-pacientes').innerHTML = html;
+        })
+        .catch(() => {
+            document.getElementById('lista-pacientes').innerHTML = '<p class="text-danger">Erro ao carregar a lista.</p>';
+        });
+}
+
+// Configura eventos de filtro e busca
+document.addEventListener('DOMContentLoaded', function() {
+    const campoBusca = document.getElementById('buscaMedicamento');
+    const selectFiltro = document.getElementById('filtroStatus');
+
+    if (campoBusca) {
+        campoBusca.addEventListener('input', carregarListaComFiltros);
+    }
+    if (selectFiltro) {
+        selectFiltro.addEventListener('change', carregarListaComFiltros);
+    }
+
+    // Carrega a lista inicial
+    carregarListaComFiltros();
+});
   </script>
 </body>
 </html>
