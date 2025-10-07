@@ -156,7 +156,7 @@
             <button class="action-btn">
               <i class="fas fa-file-alt"></i>
               <span class="action-title">Gerar Relatório</span>
-              <small class="action-subtitle">Criar relatório de gestão</small>
+              <small class="action-subtitle">Criar relatório</small>
             </button>
           </div>
         </div>
