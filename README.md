@@ -1,6 +1,6 @@
-# 🧪 Plataforma de Gestão Clínica e Farmacêutica
+# Plataforma de Gestão Clínica e Farmacêutica
 
-## 📘 Visão Geral do Projeto
+## Visão Geral do Projeto
 
 A **Plataforma de Gestão Clínica e Farmacêutica** (versão do *Projeto Integrador*) é uma aplicação web destinada a **gestionar serviços clínicos, farmacêuticos e farmacovigilância** em nível municipal/por unidade. O objetivo principal é organizar e automatizar o fluxo de atendimento farmacêutico (crônico e agudo), cadastro de pacientes e prontuários, emissão de receituários, gerenciamento de unidades (até 8 CNPJs) e geração de relatórios gerenciais e operacionais.
 
@@ -8,7 +8,7 @@ O projeto está sendo desenvolvido em sprints e, atualmente, conta com telas ini
 
 ---
 
-## 🎯 Escopo funcional (resumido - itens essenciais para a Sprint)
+## Escopo funcional (resumido - itens essenciais para a Sprint)
 
 - **Cadastro e gestão de pacientes:** dados demográficos, contatos, histórico e prontuário eletrônico.
 - **Módulo de atendimento farmacêutico:** registro de atendimentos agudos e acompanhamento de pacientes crônicos.
@@ -21,7 +21,7 @@ O projeto está sendo desenvolvido em sprints e, atualmente, conta com telas ini
 
 ---
 
-## 🧠 Stack Tecnológico (versão recomendada / alternativa)
+## Stack Tecnológico (versão recomendada / alternativa)
 
 **Versão do grupo (sugerida / atual):**
 - Frontend: HTML5, CSS3, JavaScript (+ Bootstrap para UI)
@@ -39,7 +39,7 @@ O projeto está sendo desenvolvido em sprints e, atualmente, conta com telas ini
 
 ---
 
-## ⚙️ Requisitos de ambiente (desenvolvimento)
+## Requisitos de ambiente (desenvolvimento)
 
 - XAMPP (Apache + MySQL)
 - PHP (versão compatível com o XAMPP instalado)
@@ -49,7 +49,7 @@ O projeto está sendo desenvolvido em sprints e, atualmente, conta com telas ini
 
 ---
 
-## 📁 Estrutura sugerida do repositório
+## Estrutura sugerida do repositório
 
 ```
 gestao-servicos-repo/
@@ -69,7 +69,7 @@ gestao-servicos-repo/
 
 ---
 
-## 🔧 Instalação e configuração (passo a passo)
+## Instalação e configuração (passo a passo)
 
 1. **Clonar o repositório**
 
@@ -101,7 +101,7 @@ cd gestao-servicos-repo
 
 ---
 
-## 🔐 Arquivos importantes de configuração
+## Arquivos importantes de configuração
 
 ### `config/.env.example`
 
@@ -113,9 +113,6 @@ DB_NAME=gestao_servicos
 GEMINI_API_KEY=your_gemini_key_here
 APP_ENV=development
 ```
-
-> **Atenção:** Não commitar o `config/.env` real. Adicione `config/.env` ao `.gitignore`.
-
 
 ### `config/db_connect.php` (exemplo)
 
@@ -138,94 +135,7 @@ return $conn;
 
 ---
 
-## 🗄️ Schema SQL sugerido (`config/gestao_servicos_schema.sql`)
-
-Exemplo de estruturas iniciais focadas no domínio farmacêutico/clínico:
-
-```sql
-CREATE DATABASE IF NOT EXISTS gestao_servicos;
-USE gestao_servicos;
-
--- Usuários (profissionais e admins)
-CREATE TABLE usuarios (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  nome VARCHAR(150) NOT NULL,
-  email VARCHAR(150) NOT NULL UNIQUE,
-  senha_hash VARCHAR(255) NOT NULL,
-  cargo VARCHAR(80),
-  role ENUM('admin','farmaceutico','atendente') DEFAULT 'atendente',
-  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Unidades (CNPJ)
-CREATE TABLE unidades (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  nome VARCHAR(200) NOT NULL,
-  cnpj VARCHAR(20) NOT NULL UNIQUE,
-  endereco VARCHAR(255),
-  telefone VARCHAR(50),
-  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Pacientes
-CREATE TABLE pacientes (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  nome VARCHAR(200) NOT NULL,
-  dt_nascimento DATE,
-  cpf VARCHAR(20),
-  telefone VARCHAR(50),
-  email VARCHAR(150),
-  endereco VARCHAR(255),
-  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Atendimentos farmacêuticos
-CREATE TABLE atendimentos (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  paciente_id INT NOT NULL,
-  unidade_id INT,
-  profissional_id INT,
-  tipo ENUM('agudo','cronico') DEFAULT 'agudo',
-  motivo TEXT,
-  diagnostico TEXT,
-  encaminhamentos TEXT,
-  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE CASCADE,
-  FOREIGN KEY (unidade_id) REFERENCES unidades(id) ON DELETE SET NULL,
-  FOREIGN KEY (profissional_id) REFERENCES usuarios(id) ON DELETE SET NULL
-);
-
--- Prescrições / Receituários
-CREATE TABLE prescricoes (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  atendimento_id INT NOT NULL,
-  medicamento VARCHAR(255),
-  dosagem VARCHAR(100),
-  via_administracao VARCHAR(50),
-  duracao VARCHAR(100),
-  observacoes TEXT,
-  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (atendimento_id) REFERENCES atendimentos(id) ON DELETE CASCADE
-);
-
--- Log de acessos (para auditoria e conformidade LGPD)
-CREATE TABLE auditoria_acessos (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  usuario_id INT,
-  paciente_id INT,
-  acao VARCHAR(255),
-  detalhe TEXT,
-  ip VARCHAR(50),
-  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL
-);
-```
-
-> Ajuste conforme a necessidade (ex.: adicionar tabelas de medicamentos, estoque, dispensação, lote e validade se o sistema for integrar gerenciamento de estoque farmacêutico).
-
----
-
-## 🧪 Padrões de segurança e LGPD
+## Padrões de segurança e LGPD
 
 - **Minimização de dados:** armazenar apenas o necessário para atendimento.
 - **Consentimento:** registrar consentimento para tratamento quando aplicável.
@@ -235,7 +145,7 @@ CREATE TABLE auditoria_acessos (
 
 ---
 
-## 🧭 Roadmap / Sprints (planejamento para entrega ao município)
+## Roadmap / Sprints (planejamento para entrega ao município)
 
 - **Sprint 1:** levantamento de requisitos, estudo de protocolos e prototipação (wireframes).
 - **Sprint 2:** configuração do repositório, README, estrutura inicial e autenticação básica.
@@ -246,18 +156,12 @@ CREATE TABLE auditoria_acessos (
 
 ---
 
-## 📌 Boas práticas para o time
+## Boas práticas para o time
 
 - Branch por feature: `feature/<nome>`.
 - PRs revisados e descrição clara com screenshots se necessário.
 - Testes manuais nas principais jornadas (criar paciente, atender, gerar receituário).
 - Documentar endpoints no `API.md`.
-
----
-
-## 📧 Contato
-
-Para dúvidas sobre o repositório, abra uma **issue** ou marque os responsáveis pelo projeto no GitHub. Use o histórico de conversas do time para alinhar detalhes de protocolo e requisitos clínicos.
 
 ---
 
