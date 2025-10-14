@@ -1,14 +1,6 @@
 <?php include("../config/database.php"); ?>
 
 <?php
-include_once __DIR__ . '/../config/auth.php';
-
-if (!Auth::isAuthenticated()) {
-    header("Location: /portal-repo-og/templates/login.php");
-    exit();
-}
-?>
-<?php
 if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     $sql = "SELECT * FROM unidades ORDER BY nome ASC";
     $result = mysqli_query($conn, $sql);
@@ -57,6 +49,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     endif;
     exit;
 }
+
 if (isset($_GET['action']) && $_GET['action'] === 'get_unidade' && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
     $sql = "SELECT * FROM unidades WHERE id = ?";
@@ -92,6 +85,7 @@ if (isset($_POST['salvar'])) {
         echo "<div class='alert alert-danger mx-4 my-3' role='alert'>Campos obrigatórios não preenchidos.</div>";
         exit;
     }
+
     $nome = mysqli_real_escape_string($conn, $nome);
     $cnpj = mysqli_real_escape_string($conn, $cnpj);
     $telefone = mysqli_real_escape_string($conn, $telefone);
@@ -219,11 +213,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-  <link rel="stylesheet" href="/styles/global.css">
-  <link rel="stylesheet" href="/styles/header.css">
-  <link rel="stylesheet" href="/styles/sidebar.css">
-  <link rel="stylesheet" href="/styles/responsive.css">
-  <link rel="stylesheet" href="/styles/unidade.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/global.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/header.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/sidebar.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/responsive.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/unidade.css">
 </head>
 <body>
   <div id="header-container"></div>
@@ -421,9 +415,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/js/unidade.js"></script>
-  <script src="/js/script.js"></script>
-  <script src="/js/sidebar.js"></script>
+  <script src="/portal-repo-og/js/unidade.js"></script>
+  <script src="/portal-repo-og/js/script.js"></script>
+  <script src="/portal-repo-og/js/sidebar.js"></script>
   <script>
     function loadTemplate(templatePath, containerId) {
         fetch(templatePath)
@@ -434,6 +428,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
             })
             .catch(err => console.error('Erro ao carregar template:', err));
     }
+
     function loadStats() {
         fetch('?action=load_stats')
             .then(r => r.json())
@@ -444,6 +439,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
             })
             .catch(err => console.error('Erro ao carregar estatísticas:', err));
     }
+
     function loadUnidades() {
         fetch('?action=load_list')
             .then(r => r.text())
@@ -517,6 +513,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
                     });
             });
         });
+
         document.querySelectorAll('.btn-excluir').forEach(btn => {
             btn.addEventListener('click', function() {
                 if (!confirm('Tem certeza que deseja excluir esta unidade?')) return;
@@ -546,18 +543,23 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
     }
 
     document.addEventListener("DOMContentLoaded", function () {
-        loadTemplate("/templates/header.php", "header-container");
-        loadTemplate("/templates/sidebar.php", "sidebar-container");
+        // Carrega header e sidebar
+        loadTemplate('/portal-repo-og/templates/header.php', 'header-container');
+        loadTemplate('/portal-repo-og/templates/sidebar.php', 'sidebar-container');
 
+        // Inicializa funções globais
         if (typeof initializeSidebar === 'function') initializeSidebar();
         if (typeof initializeActionButtons === 'function') initializeActionButtons();
         if (typeof initializeTooltips === 'function') initializeTooltips();
         if (typeof initializeNavigation === 'function') initializeNavigation();
         if (typeof setActiveSidebarLink === 'function') setActiveSidebarLink();
 
+        // Carrega dados
         loadStats();
+        loadUnidades();
         attachEventListeners();
 
+        // Evento para editar unidade a partir dos detalhes
         document.getElementById('btnEditarUnidade').addEventListener('click', function() {
             const id = this.getAttribute('data-id');
             fetch(`?action=get_unidade&id=${id}`)

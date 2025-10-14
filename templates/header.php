@@ -1,7 +1,8 @@
+<!-- header.php -->
 <header class="header">
   <i id="menu-toggle" class="fa-solid fa-bars" role="button" aria-label="Abrir e fechar menu"></i>
   <div class="header-logo">
-    <img src="/assets/logo-header.png" alt="Vitally Logo" />
+    <img src="/portal-repo-og/assets/logo-header.png" alt="Vitally Logo" />
   </div>
   
   <div class="header-user-info">
@@ -29,5 +30,4 @@
       </div>
     </div>
   </div>
-  
 </header>
