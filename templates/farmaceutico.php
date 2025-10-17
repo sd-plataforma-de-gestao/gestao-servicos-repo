@@ -33,6 +33,22 @@ function formatarCRF($crf)
     return strtoupper(limparCRF($crf));
 }
 
+/**
+ * Função utilitária para mapear o status do BD para a classe CSS.
+ * Usa as classes semânticas definidas no seu global.css.
+ */
+function getStatusBadgeClass($status)
+{
+    switch (strtolower($status)) {
+        case 'ativo':
+            return 'status-ativo';
+        case 'inativo':
+            return 'status-inativo';
+        default:
+            return 'status-padrao';
+    }
+}
+
 
 // Carrega lista via AJAX com suporte a filtros
 if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
@@ -66,6 +82,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
 
     if (!empty($params)) {
         $types = str_repeat('s', count($params));
+        // Note: O uso de '...' desempacota o array $params para a função bind_param
         $stmt->bind_param($types, ...$params);
     }
 
@@ -75,13 +92,15 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     if ($result && mysqli_num_rows($result) > 0):
         echo '<table class="table table-striped table-hover mt-3"><thead class="table-light"><tr><th>Nome</th><th>E-mail</th><th>CRF</th><th>Telefone</th><th>Status</th></tr></thead><tbody>';
         while ($row = mysqli_fetch_assoc($result)):
-            $statusBadge = $row['status'] === 'ativo' ? 'success' : 'danger';
+            // CORREÇÃO: Usando a classe semântica customizada
+            $statusBadgeClass = getStatusBadgeClass($row['status']); 
             echo '<tr>';
             echo '<td>' . htmlspecialchars($row['nome'], ENT_QUOTES, 'UTF-8') . '</td>';
             echo '<td>' . htmlspecialchars($row['email'], ENT_QUOTES, 'UTF-8') . '</td>';
             echo '<td>' . (!empty($row['crf']) ? htmlspecialchars(formatarCRF($row['crf']), ENT_QUOTES, 'UTF-8') : '-') . '</td>';
             echo '<td>' . htmlspecialchars($row['telefone'] ?? '-', ENT_QUOTES, 'UTF-8') . '</td>';
-            echo '<td><span class="badge bg-' . $statusBadge . '">' . ucfirst($row['status']) . '</span></td>';
+            // CORREÇÃO: Aplicando a classe semântica
+            echo '<td><span class="badge ' . $statusBadgeClass . '">' . ucfirst($row['status']) . '</span></td>'; 
             echo '</tr>';
         endwhile;
         echo '</tbody></table>';
@@ -152,6 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } else {
         if ($isAjax) {
+            // Em caso de erro de duplicidade (e-mail ou CRF), a mensagem do SQL aparecerá
             echo "error: " . $stmt->error;
         } else {
             header("Location: farmaceutico.php?error=Erro ao salvar farmacêutico.");
@@ -170,9 +190,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Farmacêuticos</title>
-    <link rel="icon" href="/assets/favicon.png" type="image/png">
+    <link rel="icon" href="/portal-repo-og/assets/favicon.png" type="image/png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
     <link rel="stylesheet" href="/portal-repo-og/styles/global.css">
     <link rel="stylesheet" href="/portal-repo-og/styles/header.css">
     <link rel="stylesheet" href="/portal-repo-og/styles/sidebar.css">
@@ -218,19 +241,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <h2 class="list-title">Lista de Farmacêuticos</h2>
                     <div id="lista-farmaceuticos">
                         <?php
+                        // Carregamento inicial (sem filtros)
                         $sql = "SELECT id, nome, email, crf, telefone, status FROM farmaceuticos ORDER BY nome ASC";
                         $result = mysqli_query($conn, $sql);
 
                         if ($result && mysqli_num_rows($result) > 0):
                             echo '<table class="table table-striped table-hover mt-3"><thead class="table-light"><tr><th>Nome</th><th>E-mail</th><th>CRF</th><th>Telefone</th><th>Status</th></tr></thead><tbody>';
                             while ($row = mysqli_fetch_assoc($result)):
-                                $statusBadge = $row['status'] === 'ativo' ? 'success' : 'danger';
+                                // CORREÇÃO: Usando a função para obter a classe correta
+                                $statusBadgeClass = getStatusBadgeClass($row['status']);
                                 echo '<tr>';
                                 echo '<td>' . htmlspecialchars($row['nome'], ENT_QUOTES, 'UTF-8') . '</td>';
                                 echo '<td>' . htmlspecialchars($row['email'], ENT_QUOTES, 'UTF-8') . '</td>';
                                 echo '<td>' . (!empty($row['crf']) ? htmlspecialchars(formatarCRF($row['crf']), ENT_QUOTES, 'UTF-8') : '-') . '</td>';
                                 echo '<td>' . htmlspecialchars($row['telefone'] ?? '-', ENT_QUOTES, 'UTF-8') . '</td>';
-                                echo '<td><span class="badge bg-' . $statusBadge . '">' . ucfirst($row['status']) . '</span></td>';
+                                // CORREÇÃO: Aplicando a classe semântica
+                                echo '<td><span class="badge ' . $statusBadgeClass . '">' . ucfirst($row['status']) . '</span></td>';
                                 echo '</tr>';
                             endwhile;
                             echo '</tbody></table>';
@@ -289,8 +315,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <script src="/portal-repo-og/js/script.js"></script>
     <script>
+        // Funções utilitárias (carregar templates)
         function loadTemplate(templatePath, containerId) {
             fetch(templatePath)
                 .then(r => r.text())
@@ -306,12 +336,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             loadTemplate('/portal-repo-og/templates/sidebar.php', 'sidebar-container');
         });
 
-        // === FILTROS DINÂMICOS (não interfere nas máscaras) ===
+        // =====================================================================
+        // === LÓGICA DE FILTROS, MÁSCARAS E ENVIO DO FORMULÁRIO ===
+        // =====================================================================
+
         document.addEventListener('DOMContentLoaded', function() {
             const busca = document.getElementById('buscaFarmaceutico');
             const filtro = document.getElementById('filtroStatus');
             const lista = document.getElementById('lista-farmaceuticos');
+            const formFarmaceutico = document.getElementById("formFarmaceutico");
+            const farmaceuticoModalElement = document.getElementById("farmaceuticoModal"); // CORRETO: Referência ao modal Farmacêutico
 
+            // Função para recarregar a lista (usada por filtros e após cadastro)
             function atualizarLista() {
                 const url = `farmaceutico.php?action=load_list&search=${encodeURIComponent(busca.value.trim())}&status=${encodeURIComponent(filtro.value)}`;
                 fetch(url).then(r => r.text()).then(html => {
@@ -319,262 +355,171 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 });
             }
 
+            // Inicializa a lista e os listeners de filtro
             if (busca) busca.addEventListener('input', atualizarLista);
             if (filtro) filtro.addEventListener('change', atualizarLista);
-            if (lista) atualizarLista(); // carrega inicial
-        });
+            if (lista) atualizarLista();
 
 
-        // Aplica formatação e limitação do CRF
-        document.addEventListener('input', function(e) {
-            if (e.target.matches('#crf')) {
-                let valor = e.target.value;
-                // Mantém apenas letras e números, converte para maiúsculo
-                let limpo = valor.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-                // Limita a 8 caracteres
-                if (limpo.length > 8) limpo = limpo.substring(0, 8);
-                // Atualiza o campo
-                if (valor !== limpo) {
-                    const start = e.target.selectionStart;
-                    const diff = limpo.length - valor.length;
-                    e.target.value = limpo;
-                    e.target.setSelectionRange(start + diff, start + diff);
-                }
-            }
-        });
-
-        // Bloqueia teclas inválidas no CRF (permite letras, números e teclas de controle)
-        document.addEventListener('keydown', function(e) {
-            if (e.target.matches('#crf')) {
-                const key = e.key;
-                const isAlnum = /^[A-Za-z0-9]$/.test(key);
-                const isControlKey = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter', 'Home', 'End'].includes(key);
-                if (!isAlnum && !isControlKey) {
+            // === AJAX PARA ENVIO DO FORMULÁRIO (CORRIGIDO) ===
+            if (formFarmaceutico) {
+                formFarmaceutico.addEventListener("submit", function(e) {
                     e.preventDefault();
-                }
-            }
-        });
 
-        // === MÁSCARA DE TELEFONE (reutilizada do paciente) ===
+                    const btn = formFarmaceutico.querySelector('[type="submit"]');
+                    if (!btn || btn.disabled) return;
 
-        function mascaraTelefone(valor) {
-            let digits = valor.replace(/\D/g, '').substring(0, 11);
-            if (digits.length <= 10) {
-                return digits
-                    .replace(/(\d{2})(\d)/, '($1) $2')
-                    .replace(/(\d{2})\s(\d{4})(\d)/, '$1 $2-$3');
-            } else {
-                return digits
-                    .replace(/(\d{2})(\d)/, '($1) $2')
-                    .replace(/(\d{2})\s(\d{5})(\d)/, '$1 $2-$3');
-            }
-        }
+                    btn.disabled = true;
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
 
-        document.addEventListener('input', function(e) {
-            if (e.target.matches('#telefone')) {
-                let valorOriginal = e.target.value;
-                let valorMascarado = mascaraTelefone(valorOriginal);
-                if (valorOriginal !== valorMascarado) {
-                    const start = e.target.selectionStart;
-                    const diff = valorMascarado.length - valorOriginal.length;
-                    e.target.value = valorMascarado;
-                    e.target.setSelectionRange(start + diff, start + diff);
-                }
-            }
-        });
+                    const formData = new FormData(formFarmaceutico);
 
-        document.addEventListener('keydown', function(e) {
-            if (e.target.matches('#telefone')) {
-                const key = e.key;
-                const isDigit = /^\d$/.test(key);
-                const isControlKey = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter', 'Home', 'End'].includes(key);
-                if (!isDigit && !isControlKey) {
-                    e.preventDefault();
-                }
-            }
-        });
-
-        // === AJAX PARA ENVIO DO FORMULÁRIO ===
-
-        document.addEventListener("DOMContentLoaded", function() {
-            const formFarmaceutico = document.getElementById("formFarmaceutico");
-            const farmaceuticoModalElement = document.getElementById("farmaceuticoModal");
-            const listaFarmaceuticos = document.getElementById("lista-farmaceuticos");
-
-            if (!formFarmaceutico || !listaFarmaceuticos) return;
-
-            function recarregarLista() {
-                fetch('farmaceutico.php?action=load_list')
-                    .then(r => r.text())
-                    .then(html => {
-                        listaFarmaceuticos.innerHTML = html;
-                    })
-                    .catch(err => {
-                        listaFarmaceuticos.innerHTML = '<p class="text-danger">Erro ao carregar a lista.</p>';
-                    });
-            }
-
-            formFarmaceutico.addEventListener("submit", function(e) {
-                e.preventDefault();
-
-                const btn = formFarmaceutico.querySelector('[type="submit"]');
-                if (!btn || btn.disabled) return;
-
-                btn.disabled = true;
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
-
-                const formData = new FormData(formFarmaceutico);
-
-                fetch('farmaceutico.php', {
+                    fetch('farmaceutico.php', {
                         method: "POST",
                         body: formData,
                         headers: {
                             "X-Requested-With": "XMLHttpRequest"
                         }
                     })
+                    // 1. Recebe a resposta do PHP
                     .then(response => response.text())
+                    // 2. Processa o resultado
                     .then(result => {
-                        if (result.trim() === "success") {
-                            const modal = bootstrap.Modal.getInstance(farmaceuticoModalElement);
+                        const message = result.trim();
+                        const modal = bootstrap.Modal.getInstance(farmaceuticoModalElement); // Obtém a instância do modal
+
+                        if (message === "success") {
+                            // SUCESSO: FECHA MODAL, RESETA, ATUALIZA LISTA E MOSTRA POPUP
                             if (modal) modal.hide();
                             formFarmaceutico.reset();
-                            recarregarLista();
-                            alert("Farmacêutico cadastrado com sucesso!");
+                            atualizarLista(); // Atualiza a tabela imediatamente
+                            
+                            // Chama a função centralizada no script.js
+                            showCustomAlert('success', 'Sucesso!', 'Farmacêutico cadastrado com sucesso!');
+
                         } else {
-                            alert("Erro: " + result.replace("error: ", ""));
+                            // ERRO DO PHP
+                            let errorMessage = message.startsWith('error: ') ? message.replace('error: ', '') : 'Erro desconhecido ao cadastrar.';
+                            showCustomAlert('error', 'Erro no Cadastro!', errorMessage);
                         }
                     })
-                    .catch(() => {
-                        alert("Erro de conexão ao cadastrar farmacêutico.");
+                    // 3. Erro de Conexão/Rede
+                    .catch(error => {
+                        console.error('Erro de requisição:', error);
+                        showCustomAlert('error', 'Erro de Conexão!', 'Erro de conexão ao cadastrar farmacêutico.');
                     })
+                    // 4. Finaliza: restaura o botão
                     .finally(() => {
-                        setTimeout(() => {
-                            if (btn) {
-                                btn.disabled = false;
-                                btn.innerHTML = originalText;
-                            }
-                        }, 500);
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
                     });
+                });
+            }
+
+            // === MÁSCARAS E VALIDAÇÕES (MANTIDAS DO SEU CÓDIGO ORIGINAL) ===
+
+            // Aplica formatação e limitação do CRF (Apenas para garantir que não foi perdida)
+            document.addEventListener('input', function(e) {
+                if (e.target.matches('#crf')) {
+                    let valor = e.target.value;
+                    let novoValor = '';
+                    let pos = e.target.selectionStart;
+
+                    for (let i = 0; i < valor.length && i < 8; i++) {
+                        let char = valor[i].toUpperCase();
+                        if (i < 2) {
+                            if (/[A-Z]/.test(char)) {
+                                novoValor += char;
+                            }
+                        } else {
+                            if (/[0-9]/.test(char)) {
+                                novoValor += char;
+                            }
+                        }
+                    }
+
+                    if (valor !== novoValor) {
+                        e.target.value = novoValor;
+                        const novaPos = Math.min(pos, novoValor.length);
+                        e.target.setSelectionRange(novaPos, novaPos);
+                    }
+                }
             });
-        });
 
-        // Máscara de telefone com suporte a fixo (10 dígitos) e celular (11 dígitos)
-        document.addEventListener('input', function(e) {
-            if (e.target.matches('#telefone')) {
-                let valor = e.target.value;
-                let digits = valor.replace(/\D/g, '');
-                if (digits.length > 11) digits = digits.substring(0, 11);
+            // Bloqueia teclas inválidas no CRF
+            document.addEventListener('keydown', function(e) {
+                if (e.target.matches('#crf')) {
+                    const key = e.key;
+                    const pos = e.target.selectionStart || 0;
+                    const valor = e.target.value;
 
-                let masked = '';
-                if (digits.length <= 2) {
-                    masked = digits;
-                } else if (digits.length <= 6) {
-                    masked = digits.replace(/(\d{2})(\d{0,4})/, '($1) $2');
-                } else if (digits.length <= 10) {
-                    masked = digits.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
-                } else {
-                    masked = digits.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
-                }
+                    if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter', 'Home', 'End'].includes(key)) return;
 
-                if (valor !== masked) {
-                    const start = e.target.selectionStart;
-                    const diff = masked.length - valor.length;
-                    e.target.value = masked;
-                    e.target.setSelectionRange(start + diff, start + diff);
-                }
-            }
-        });
-
-        // Bloqueia teclas inválidas no telefone
-        document.addEventListener('keydown', function(e) {
-            if (e.target.matches('#telefone')) {
-                const key = e.key;
-                const isDigit = /^\d$/.test(key);
-                const isControlKey = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter', 'Home', 'End'].includes(key);
-                if (!isDigit && !isControlKey) {
-                    e.preventDefault();
-                }
-            }
-        });
-
-        // Trata colar (paste) no telefone
-        document.addEventListener('paste', function(e) {
-            if (e.target.matches('#telefone')) {
-                setTimeout(() => {
-                    let digits = e.target.value.replace(/\D/g, '').substring(0, 11);
-                    let masked = '';
-                    if (digits.length <= 2) masked = digits;
-                    else if (digits.length <= 6) masked = digits.replace(/(\d{2})(\d{0,4})/, '($1) $2');
-                    else if (digits.length <= 10) masked = digits.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
-                    else masked = digits.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
-                    e.target.value = masked;
-                }, 10);
-            }
-        });
-        // Aplica regras de digitação e formatação em tempo real para o campo CRF
-        document.addEventListener('input', function(e) {
-            if (e.target.matches('#crf')) {
-                let valor = e.target.value;
-                let novoValor = '';
-                let pos = e.target.selectionStart;
-
-                // Processa caractere por caractere
-                for (let i = 0; i < valor.length && i < 8; i++) {
-                    let char = valor[i].toUpperCase();
-                    if (i < 2) {
-                        // Primeiros 2: só letras
-                        if (/[A-Z]/.test(char)) {
-                            novoValor += char;
-                        }
+                    if (pos < 2) {
+                        if (!/^[A-Za-z]$/.test(key)) e.preventDefault();
                     } else {
-                        // A partir do 3º: só números
-                        if (/[0-9]/.test(char)) {
-                            novoValor += char;
-                        }
+                        if (!/^[0-9]$/.test(key)) e.preventDefault();
                     }
-                }
 
-                // Atualiza o campo se houver mudança
-                if (valor !== novoValor) {
-                    e.target.value = novoValor;
-                    // Ajusta a posição do cursor
-                    const novaPos = Math.min(pos, novoValor.length);
-                    e.target.setSelectionRange(novaPos, novaPos);
-                }
-            }
-        });
-
-        // Bloqueia teclas inválidas para evitar caracteres indesejados
-        document.addEventListener('keydown', function(e) {
-            if (e.target.matches('#crf')) {
-                const key = e.key;
-                const pos = e.target.selectionStart || 0;
-                const valor = e.target.value;
-
-                // Permite teclas de controle sempre
-                if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter', 'Home', 'End'].includes(key)) {
-                    return;
-                }
-
-                // Verifica o contexto da posição do cursor
-                if (pos < 2) {
-                    // Nas duas primeiras posições: só letras
-                    if (!/^[A-Za-z]$/.test(key)) {
+                    if (valor.length >= 8 && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(key)) {
                         e.preventDefault();
                     }
+                }
+            });
+            
+            // Lógica e máscaras do telefone (mantidas do seu código original)
+            function mascaraTelefone(valor) {
+                let digits = valor.replace(/\D/g, '').substring(0, 11);
+                if (digits.length <= 10) {
+                    return digits
+                        .replace(/(\d{2})(\d)/, '($1) $2')
+                        .replace(/(\d{2})\s(\d{4})(\d)/, '$1 $2-$3');
                 } else {
-                    // Nas posições seguintes: só números
-                    if (!/^[0-9]$/.test(key)) {
+                    return digits
+                        .replace(/(\d{2})(\d)/, '($1) $2')
+                        .replace(/(\d{2})\s(\d{5})(\d)/, '$1 $2-$3');
+                }
+            }
+            
+            document.addEventListener('input', function(e) {
+                if (e.target.matches('#telefone')) {
+                    let valorOriginal = e.target.value;
+                    let valorMascarado = mascaraTelefone(valorOriginal);
+                    if (valorOriginal !== valorMascarado) {
+                        const start = e.target.selectionStart;
+                        const diff = valorMascarado.length - valorOriginal.length;
+                        e.target.value = valorMascarado;
+                        e.target.setSelectionRange(start + diff, start + diff);
+                    }
+                }
+            });
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.target.matches('#telefone')) {
+                    const key = e.key;
+                    const isDigit = /^\d$/.test(key);
+                    const isControlKey = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter', 'Home', 'End'].includes(key);
+                    if (!isDigit && !isControlKey) {
                         e.preventDefault();
                     }
                 }
+            });
 
-                // Impede digitar além do limite (8 caracteres)
-                if (valor.length >= 8 && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(key)) {
-                    e.preventDefault();
+            document.addEventListener('paste', function(e) {
+                if (e.target.matches('#telefone')) {
+                    setTimeout(() => {
+                        let digits = e.target.value.replace(/\D/g, '').substring(0, 11);
+                        let masked = '';
+                        if (digits.length <= 2) masked = digits;
+                        else if (digits.length <= 6) masked = digits.replace(/(\d{2})(\d{0,4})/, '($1) $2');
+                        else if (digits.length <= 10) masked = digits.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+                        else masked = digits.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+                        e.target.value = masked;
+                    }, 10);
                 }
-            }
+            });
+
         });
     </script>
 </body>
