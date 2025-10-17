@@ -16,45 +16,45 @@ document.addEventListener("DOMContentLoaded", function () {
                 listaPacientes.innerHTML = '<p class="text-danger">Erro ao carregar a lista. Tente novamente.</p>';
             });
     }
-    formFarmaceutico.addEventListener("submit", function (e) {
-        e.preventDefault();
+    // formFarmaceutico.addEventListener("submit", function (e) {
+    //     e.preventDefault();
 
-        const btn = formFarmaceutico.querySelector('[type="submit"]');
-        if (btn.disabled) return;
+    //     const btn = formFarmaceutico.querySelector('[type="submit"]');
+    //     if (btn.disabled) return;
 
-        btn.disabled = true;
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
+    //     btn.disabled = true;
+    //     const originalText = btn.innerHTML;
+    //     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
 
-        const formData = new FormData(formFarmaceutico);
+    //     const formData = new FormData(formFarmaceutico);
 
-        fetch('medicamento.php', {
-            method: "POST",
-            body: formData,
-            headers: { "X-Requested-With": "XMLHttpRequest" }
-        })
-        .then(response => response.text())
-        .then(result => {
-            if (result.trim() === "success") {
-                const modal = bootstrap.Modal.getInstance(farmaceuticoModalElement);
-                if (modal) modal.hide();
-                formFarmaceutico.reset();
-                recarregarLista();
-                alert("✅ Medicamento cadastrado com sucesso!");
-            } else {
-                alert("❌ " + result.replace("error: ", ""));
-            }
-        })
-        .catch(() => {
-            alert("⚠️ Erro de conexão. Verifique sua internet.");
-        })
-        .finally(() => {
-            setTimeout(() => {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                }
-            }, 500);
-        });
-    });
+    //     fetch('medicamento.php', {
+    //         method: "POST",
+    //         body: formData,
+    //         headers: { "X-Requested-With": "XMLHttpRequest" }
+    //     })
+    //     .then(response => response.text())
+    //     .then(result => {
+    //         if (result.trim() === "success") {
+    //             const modal = bootstrap.Modal.getInstance(farmaceuticoModalElement);
+    //             if (modal) modal.hide();
+    //             formFarmaceutico.reset();
+    //             recarregarLista();
+    //             alert("✅ Medicamento cadastrado com sucesso!");
+    //         } else {
+    //             alert("❌ " + result.replace("error: ", ""));
+    //         }
+    //     })
+    //     .catch(() => {
+    //         alert("⚠️ Erro de conexão. Verifique sua internet.");
+    //     })
+    //     .finally(() => {
+    //         setTimeout(() => {
+    //             if (btn) {
+    //                 btn.disabled = false;
+    //                 btn.innerHTML = originalText;
+    //             }
+    //         }, 500);
+    //     });
+    // });
 });

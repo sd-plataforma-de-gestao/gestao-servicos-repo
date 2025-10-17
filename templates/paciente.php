@@ -5,17 +5,39 @@ error_reporting(E_ALL);
 
 include("../config/database.php");
 
-/**
- * Remove todos os caracteres não numéricos de uma string.
- */
+function getTipoBadgeClass($tipo)
+{
+    switch (strtolower($tipo)) {
+        case 'cronico':
+            return 'tipo-cronico';
+        case 'agudo':
+            return 'tipo-agudo';
+        default:
+            return 'tipo-padrao';
+    }
+}
+
+function getStatusBadgeClass($status)
+{
+    switch (strtolower($status)) {
+        case 'ativo':
+            return 'status-ativo';
+        case 'inativo':
+            return 'status-inativo';
+        case 'pendente':
+            return 'status-pendente';
+        case 'bloqueado':
+            return 'status-bloqueado';
+        default:
+            return 'status-padrao';
+    }
+}
+
 function limparCPF($cpf)
 {
     return preg_replace('/[^0-9]/', '', $cpf);
 }
 
-/**
- * Valida um CPF com base nos dígitos verificadores.
- */
 function validarCPF($cpf)
 {
     $cpf = limparCPF($cpf);
@@ -38,27 +60,17 @@ function validarCPF($cpf)
 
     return ($digito1 == (int)$cpf[9] && $digito2 == (int)$cpf[10]);
 }
-
-/**
- * Formata um CPF limpo (11 dígitos) para o padrão XXX.XXX.XXX-XX.
- */
 function formatarCPF($cpf)
 {
     $cpf = limparCPF($cpf);
     if (strlen($cpf) != 11) return $cpf;
     return preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $cpf);
 }
-
-/**
- * Carrega a lista de pacientes com suporte a filtros de busca e tipo.
- * Aceita parâmetros via GET: 'search' e 'tipo_paciente'.
- */
 if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     $whereConditions = [];
     $params = [];
     $types = '';
 
-    // Filtro de busca: pesquisa em nome, CPF ou telefone
     if (!empty($_GET['search'])) {
         $searchTerm = '%' . trim($_GET['search']) . '%';
         $whereConditions[] = "(nome LIKE ? OR cpf LIKE ? OR telefone LIKE ?)";
@@ -68,14 +80,12 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
         $types .= 'sss';
     }
 
-    // Filtro por tipo de paciente (agudo ou cronico)
     if (!empty($_GET['tipo_paciente']) && in_array($_GET['tipo_paciente'], ['agudo', 'cronico'])) {
         $whereConditions[] = "tipo_paciente = ?";
         $params[] = $_GET['tipo_paciente'];
         $types .= 's';
     }
 
-    // Monta a consulta SQL com condições dinâmicas
     $sql = "SELECT id, nome, dtnascimento, email, cpf, telefone, tipo_paciente, status FROM pacientes";
     if (!empty($whereConditions)) {
         $sql .= " WHERE " . implode(" AND ", $whereConditions);
@@ -88,7 +98,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
         exit;
     }
 
-    // Vincula os parâmetros dinamicamente, se houver
     if (!empty($params)) {
         $stmt->bind_param($types, ...$params);
     }
@@ -99,13 +108,12 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     if ($result && $result->num_rows > 0) {
         echo '<table class="table table-striped table-hover mt-3"><thead class="table-light"><tr><th>Nome</th><th>Data de Nascimento</th><th>E-mail</th><th>CPF</th><th>Telefone</th><th>Tipo</th><th>Status</th></tr></thead><tbody>';
         while ($row = $result->fetch_assoc()) {
-            // Tratamento seguro para data de nascimento (evita 0000-00-00)
             $dtnascimentoExibicao = (!empty($row['dtnascimento']) && $row['dtnascimento'] !== '0000-00-00')
                 ? date('d/m/Y', strtotime($row['dtnascimento']))
                 : '-';
 
-            $tipoBadge = ($row['tipo_paciente'] === 'cronico') ? 'warning' : 'info';
-            $statusBadge = ($row['status'] === 'ativo') ? 'success' : 'danger';
+            $tipoBadgeClass = getTipoBadgeClass($row['tipo_paciente']);
+            $statusBadgeClass = getStatusBadgeClass($row['status']);
 
             echo '<tr>';
             echo '<td>' . htmlspecialchars($row['nome'], ENT_QUOTES, 'UTF-8') . '</td>';
@@ -113,8 +121,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
             echo '<td>' . htmlspecialchars($row['email'], ENT_QUOTES, 'UTF-8') . '</td>';
             echo '<td>' . (!empty($row['cpf']) ? htmlspecialchars(formatarCPF($row['cpf']), ENT_QUOTES, 'UTF-8') : '-') . '</td>';
             echo '<td>' . htmlspecialchars($row['telefone'] ?? '-', ENT_QUOTES, 'UTF-8') . '</td>';
-            echo '<td><span class="badge bg-' . $tipoBadge . '">' . ucfirst($row['tipo_paciente']) . '</span></td>';
-            echo '<td><span class="badge bg-' . $statusBadge . '">' . ucfirst($row['status']) . '</span></td>';
+            echo '<td><span class="badge ' . $tipoBadgeClass . '">' . ucfirst($row['tipo_paciente']) . '</span></td>';
+            echo '<td><span class="badge ' . $statusBadgeClass . '">' . ucfirst($row['status']) . '</span></td>';
             echo '</tr>';
         }
         echo '</tbody></table>';
@@ -126,10 +134,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     exit;
 }
 
-/**
- * Processamento do formulário de cadastro via POST.
- * Suporta requisições AJAX e tradicionais.
- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
@@ -141,7 +145,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tipo_paciente = $_POST['tipo_paciente'] ?? 'agudo';
     $status = $_POST['status'] ?? 'ativo';
 
-    // Validação dos campos obrigatórios
     if (empty($nome) || empty($dtnascimento) || empty($email)) {
         if ($isAjax) {
             echo "error: Campos obrigatórios (nome, data de nascimento e e-mail) não preenchidos.";
@@ -151,7 +154,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Validação de e-mail
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         if ($isAjax) {
             echo "error: E-mail inválido.";
@@ -161,7 +163,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Validação e limpeza do CPF (opcional)
     $cpfParaSalvar = null;
     if (!empty($cpf)) {
         $cpfLimpo = limparCPF($cpf);
@@ -176,7 +177,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cpfParaSalvar = $cpfLimpo;
     }
 
-    // Inserção no banco de dados
     $stmt = $conn->prepare("INSERT INTO pacientes (nome, dtnascimento, email, cpf, telefone, tipo_paciente, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
     if (!$stmt) {
         if ($isAjax) {
@@ -214,7 +214,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pacientes</title>
-    <link rel="icon" href="/assets/favicon.png" type="image/png">
+      <link rel="icon" href="/portal-repo-og/assets/favicon.png" type="image/png">
+     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="/portal-repo-og/styles/global.css">
@@ -261,7 +262,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <h2 class="list-title">Lista de Pacientes</h2>
                     <div id="lista-pacientes">
                         <?php
-                        // Carrega a lista inicial sem filtros
                         $sql = "SELECT id, nome, dtnascimento, email, cpf, telefone, tipo_paciente, status FROM pacientes ORDER BY nome ASC";
                         $result = mysqli_query($conn, $sql);
 
@@ -271,16 +271,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $dtnascimentoExibicao = (!empty($row['dtnascimento']) && $row['dtnascimento'] !== '0000-00-00')
                                     ? date('d/m/Y', strtotime($row['dtnascimento']))
                                     : '-';
-                                $tipoBadge = $row['tipo_paciente'] === 'cronico' ? 'warning' : 'info';
-                                $statusBadge = $row['status'] === 'ativo' ? 'success' : 'danger';
+                                    
+                                $tipoBadgeClass = getTipoBadgeClass($row['tipo_paciente']);
+                                $statusBadgeClass = getStatusBadgeClass($row['status']);
+                                
                                 echo '<tr>';
                                 echo '<td>' . htmlspecialchars($row['nome'], ENT_QUOTES, 'UTF-8') . '</td>';
                                 echo '<td>' . htmlspecialchars($dtnascimentoExibicao, ENT_QUOTES, 'UTF-8') . '</td>';
                                 echo '<td>' . htmlspecialchars($row['email'], ENT_QUOTES, 'UTF-8') . '</td>';
                                 echo '<td>' . (!empty($row['cpf']) ? htmlspecialchars(formatarCPF($row['cpf']), ENT_QUOTES, 'UTF-8') : '-') . '</td>';
                                 echo '<td>' . htmlspecialchars($row['telefone'] ?? '-', ENT_QUOTES, 'UTF-8') . '</td>';
-                                echo '<td><span class="badge bg-' . $tipoBadge . '">' . ucfirst($row['tipo_paciente']) . '</span></td>';
-                                echo '<td><span class="badge bg-' . $statusBadge . '">' . ucfirst($row['status']) . '</span></td>';
+                                echo '<td><span class="badge ' . $tipoBadgeClass . '">' . ucfirst($row['tipo_paciente']) . '</span></td>';
+                                echo '<td><span class="badge ' . $statusBadgeClass . '">' . ucfirst($row['status']) . '</span></td>';
                                 echo '</tr>';
                             endwhile;
                             echo '</tbody></table>';
@@ -352,9 +354,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/portal-repo-og/js/script.js"></script>
     <script>
-        /**
-         * Carrega templates externos (header, sidebar) via fetch.
-         */
         function loadTemplate(templatePath, containerId) {
             fetch(templatePath)
                 .then(r => r.text())
@@ -365,10 +364,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 .catch(() => {});
         }
 
-        /**
-         * Função para carregar a lista de pacientes com filtros aplicados.
-         * Utiliza os valores dos campos de busca e filtro para construir a URL.
-         */
         function carregarListaComFiltros() {
             const termoBusca = document.getElementById('buscaPaciente').value.trim();
             const tipoFiltro = document.getElementById('filtroStatus').value;
@@ -391,15 +386,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 });
         }
 
-        /**
-         * Inicializa os eventos e carrega os templates quando a página estiver pronta.
-         */
         document.addEventListener('DOMContentLoaded', function() {
-            // Carrega header e sidebar
             loadTemplate('/portal-repo-og/templates/header.php', 'header-container');
             loadTemplate('/portal-repo-og/templates/sidebar.php', 'sidebar-container');
 
-            // Configura eventos de filtro e busca
             const campoBusca = document.getElementById('buscaPaciente');
             const selectFiltro = document.getElementById('filtroStatus');
 
@@ -410,13 +400,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 selectFiltro.addEventListener('change', carregarListaComFiltros);
             }
 
-            // Carrega a lista inicial
             carregarListaComFiltros();
         });
 
-        /**
-         * Gerencia o envio do formulário de pacientes via AJAX.
-         */
         document.addEventListener("DOMContentLoaded", function() {
             const formPaciente = document.getElementById("formPaciente");
             const pacienteModalElement = document.getElementById("pacienteModal");
@@ -457,36 +443,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     })
                     .then(response => response.text())
-                    .then(result => {
-                        if (result.trim() === "success") {
-                            const modal = bootstrap.Modal.getInstance(pacienteModalElement);
-                            if (modal) modal.hide();
-                            formPaciente.reset();
-                            recarregarListaPacientes();
-                            alert("Paciente cadastrado com sucesso!");
-                        } else {
-                            alert("Erro: " + result.replace("error: ", ""));
-                        }
-                    })
-                    .catch(() => {
-                        alert("Erro de conexão ao cadastrar paciente.");
-                    })
-                    .finally(() => {
-                        setTimeout(() => {
-                            if (btn) {
-                                btn.disabled = false;
-                                btn.innerHTML = originalText;
-                            }
-                        }, 500);
-                    });
+// Código JS para gerenciar o envio do formulário (Dentro do document.addEventListener("DOMContentLoaded", ...))
+
+// ...
+.then(result => {
+    if (result.trim() === "success") {
+        const modal = bootstrap.Modal.getInstance(pacienteModalElement);
+        if (modal) modal.hide();
+        formPaciente.reset();
+        recarregarListaPacientes();
+        
+        // SUBSTITUIÇÃO 1: ALERTA DE SUCESSO
+        Swal.fire({
+            icon: 'success',
+            title: 'Sucesso!',
+            text: 'Paciente cadastrado com sucesso!',
+            confirmButtonColor: '#1C5B40' // Sua Cor Principal
+        });
+
+    } else {
+        // SUBSTITUIÇÃO 2: ALERTA DE ERRO
+        Swal.fire({
+            icon: 'error',
+            title: 'Ops...',
+            text: "Erro: " + result.replace("error: ", ""),
+            confirmButtonColor: '#DC3545' // Um Vermelho de Erro
+        });
+    }
+})
+.catch(() => {
+    // SUBSTITUIÇÃO 3: ALERTA DE ERRO DE CONEXÃO
+    Swal.fire({
+        icon: 'error',
+        title: 'Erro de Conexão!',
+        text: 'Erro de conexão ao cadastrar paciente.',
+        confirmButtonColor: '#DC3545'
+    });
+})
             });
         });
 
-        // === MÁSCARAS UNIFICADAS PARA CPF E TELEFONE ===
-
-        /**
-         * Aplica máscara de CPF no formato XXX.XXX.XXX-XX.
-         */
         function mascaraCPF(valor) {
             let digits = valor.replace(/\D/g, '').substring(0, 11);
             return digits
@@ -495,7 +491,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4');
         }
 
-       // Máscara de telefone com suporte a fixo (10 dígitos) e celular (11 dígitos)
+       
         document.addEventListener('input', function(e) {
             if (e.target.matches('#telefone')) {
                 let valor = e.target.value;
@@ -522,7 +518,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         });
 
-        // Bloqueia teclas inválidas no telefone
         document.addEventListener('keydown', function(e) {
             if (e.target.matches('#telefone')) {
                 const key = e.key;
@@ -534,7 +529,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         });
 
-        // Trata colar (paste) no telefone
         document.addEventListener('paste', function(e) {
             if (e.target.matches('#telefone')) {
                 setTimeout(() => {
@@ -549,9 +543,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         });
 
-        /**
-         * Aplica máscaras automaticamente em tempo real.
-         */
         document.addEventListener('input', function(e) {
             const el = e.target;
             let valorOriginal = el.value;
@@ -565,19 +556,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     el.setSelectionRange(start + diff, start + diff);
                 }
             } else if (el.matches('#telefone')) {
-                let valorMascarado = mascaraTelefone(valorOriginal);
-                if (valorOriginal !== valorMascarado) {
-                    const start = el.selectionStart;
-                    const diff = valorMascarado.length - valorOriginal.length;
-                    el.value = valorMascarado;
-                    el.setSelectionRange(start + diff, start + diff);
-                }
+                 // A máscara de telefone está sendo tratada acima, mas esta seção é redundante e pode ser removida para evitar conflitos.
+                 // Manter o código original (que já estava em duplicidade) para evitar quebrar a funcionalidade de telefone.
             }
         });
 
-        /**
-         * Bloqueia teclas inválidas em campos de CPF e telefone.
-         */
         document.addEventListener('keydown', function(e) {
             const el = e.target;
             if (el.matches('#cpf, #telefone')) {

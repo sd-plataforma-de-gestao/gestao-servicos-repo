@@ -119,25 +119,3 @@
   gap: var(--spacing-sm);
   align-items: center;
 }
-
-.status-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: 500;
-}
-
-.status-badge.ativo {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.status-badge.inativo {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-.status-badge.sem-status {
-  background-color: #f8f9fa;
-  color: #6c757d;
-}

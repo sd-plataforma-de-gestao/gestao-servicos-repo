@@ -357,4 +357,40 @@ function setActiveSidebarLink() {
       link.classList.remove("active");
     }
   });
+
+  
+}
+/**
+ * Exibe alertas padronizados usando SweetAlert2 (Swal).
+ * @param {string} type - Tipo de alerta ('success', 'error', 'warning', 'info').
+ * @param {string} title - Título do alerta.
+ * @param {string} text - Mensagem detalhada.
+ */
+function showCustomAlert(type, title, text) {
+    // ⚠️ ATENÇÃO: ESSA É A CHECAGEM CRÍTICA!
+    if (typeof Swal === 'undefined') {
+        console.error("SweetAlert2 não está carregado. Alerta não pode ser exibido. Usando fallback.");
+        // Isso é o ALERTA SEM ESTILO que você viu antes, mas agora é só um fallback de emergência.
+        alert(title + "\n\n" + text);
+        return;
+    }
+
+    let confirmColor = '#1C5B40'; // Cor padrão (verde)
+    
+    // Define a cor do botão de confirmação com base no tipo
+    if (type === 'error' || type === 'warning') {
+        confirmColor = '#DC3545'; // Cor de Erro/Alerta (Vermelho)
+    }
+
+    Swal.fire({
+        icon: type,
+        title: title,
+        text: text,
+        showConfirmButton: true,
+        confirmButtonText: 'OK',
+        confirmButtonColor: confirmColor,
+        // Auto-fecha em 3s se for sucesso, se não for, espera o clique
+        timer: type === 'success' ? 3000 : false,
+        timerProgressBar: type === 'success' ? true : false
+    });
 }
