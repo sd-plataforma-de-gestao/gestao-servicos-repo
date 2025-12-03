@@ -1,0 +1,107 @@
+.chat-container {
+  max-width: 2000px;
+  margin: 0 auto;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  background: white;
+}
+
+.chat-messages {
+  min-height: 400px;
+  max-height: 500px;
+  overflow-y: auto;
+  padding: var(--spacing-md);
+  background-color: var(--secondary-color);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+.message {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+  word-wrap: break-word;
+  font-size: var(--font-size-sm);
+  max-width: 85%;
+  align-self: flex-start;
+  background-color: #e9ecef;
+  color: var(--text-primary);
+  position: relative;
+  white-space: pre-line;
+  line-height: 1.5;
+}
+
+.message.user {
+  align-self: flex-end;
+  background-color: var(--primary-color);
+  color: white;
+}
+.suggestion-bubble {
+  background: #fff8e6;
+  border-left: 4px solid var(--warning-color);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-sm);
+  align-self: flex-start;
+  max-width: 85%;
+  color: #856404;
+  font-style: italic;
+}
+
+.suggestion-bubble:before {
+  content: "💡 Sugestão: ";
+  font-weight: bold;
+  font-style: normal;
+  color: var(--warning-color);
+}
+
+.chat-input-group {
+  padding: var(--spacing-md);
+  background: white;
+  border-top: 1px solid var(--border-color);
+}
+
+.chat-input-group .form-control {
+  border-top-left-radius: var(--border-radius-sm);
+  border-bottom-left-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.chat-input-group .btn {
+  border-top-right-radius: var(--border-radius-sm);
+  border-bottom-right-radius: var(--border-radius-sm);
+}
+
+#tipo-atendimento .btn {
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-weight: 500;
+  border: 2px solid var(--border-color);
+  transition: all var(--transition-fast);
+}
+
+#tipo-atendimento .btn.active,
+#tipo-atendimento .btn:hover {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+@media (max-width: 768px) {
+  .chat-messages {
+    min-height: 300px;
+  }
+
+  #tipo-atendimento .btn {
+    width: 100%;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .btn-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .message,
+  .suggestion-bubble {
+    max-width: 95%;
+  }
+}
