@@ -1,14 +1,12 @@
-<?php include("../config/database.php"); ?>
-
 <?php
-include_once __DIR__ . '/../config/auth.php';
-
-if (!Auth::isAuthenticated()) {
-    header("Location: /portal-repo-og/templates/login.php");
-    exit();
+session_start();
+if (!isset($_SESSION['farmaceutico_id'])) {
+    header("Location: /portal-repo-og/login.php");
+    exit;
 }
-?>
-<?php
+include(__DIR__ . '/../config/database.php');
+
+
 if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     $sql = "SELECT * FROM unidades ORDER BY nome ASC";
     $result = mysqli_query($conn, $sql);
@@ -39,13 +37,15 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
                     <?php endif; ?>
                 </div>
                 <div class="unidade-footer">
-                    <button class="btn btn-sm btn-outline-primary me-1 btn-ver" data-id="<?= $row['id'] ?>">
+                    <!-- Botão VER com classe personalizada -->
+                    <button class="btn btn-sm btn-ver-custom me-1" data-id="<?= $row['id'] ?>">
                         <i class="fa fa-eye"></i> Ver
                     </button>
-                    <button class="btn btn-sm btn-outline-warning me-1 btn-editar" data-id="<?= $row['id'] ?>">
+                    <!-- Botão EDITAR com classe personalizada -->
+                    <button class="btn btn-sm btn-editar-custom me-1" data-id="<?= $row['id'] ?>">
                         <i class="fa fa-edit"></i> Editar
                     </button>
-                    <button class="btn btn-sm btn-outline-danger btn-excluir" data-id="<?= $row['id'] ?>">
+                    <button class="btn btn-sm btn-excluir-custom" data-id="<?= $row['id'] ?>">
                         <i class="fa fa-trash"></i> Excluir
                     </button>
                 </div>
@@ -57,6 +57,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     endif;
     exit;
 }
+
 if (isset($_GET['action']) && $_GET['action'] === 'get_unidade' && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
     $sql = "SELECT * FROM unidades WHERE id = ?";
@@ -77,6 +78,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_unidade' && isset($_GET['
 }
 
 if (isset($_POST['salvar'])) {
+    $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
     $id = $_POST['id'] ?? null;
     $nome = trim($_POST['nome'] ?? '');
     $cnpj = trim($_POST['cnpj'] ?? '');
@@ -89,18 +92,43 @@ if (isset($_POST['salvar'])) {
     $observacoes = trim($_POST['observacoes'] ?? '');
 
     if (empty($nome) || empty($cnpj) || empty($telefone) || empty($endereco)) {
-        echo "<div class='alert alert-danger mx-4 my-3' role='alert'>Campos obrigatórios não preenchidos.</div>";
-        exit;
+        $error_message = "Campos obrigatórios não preenchidos.";
+        if ($isAjax) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => $error_message]);
+            exit; 
+        } else {
+            echo "<div class='alert alert-danger mx-4 my-3' role='alert'>$error_message</div>";
+            exit;
+        }
     }
-    $nome = mysqli_real_escape_string($conn, $nome);
-    $cnpj = mysqli_real_escape_string($conn, $cnpj);
-    $telefone = mysqli_real_escape_string($conn, $telefone);
-    $endereco = mysqli_real_escape_string($conn, $endereco);
-    $farmaceutico_responsavel = mysqli_real_escape_string($conn, $farmaceutico_responsavel);
-    $crf_responsavel = mysqli_real_escape_string($conn, $crf_responsavel);
-    $horario_funcionamento = mysqli_real_escape_string($conn, $horario_funcionamento);
-    $status = mysqli_real_escape_string($conn, $status);
-    $observacoes = mysqli_real_escape_string($conn, $observacoes);
+
+    $cnpj = preg_replace('/\D/', '', $cnpj);
+    $telefone = preg_replace('/\D/', '', $telefone);
+
+    if (strlen($cnpj) !== 14) {
+        $error_message = "CNPJ inválido.";
+        if ($isAjax) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => $error_message]);
+            exit;
+        } else {
+            echo "<div class='alert alert-danger mx-4 my-3' role='alert'>$error_message</div>";
+            exit;
+        }
+    }
+
+    if (strlen($telefone) < 10 || strlen($telefone) > 11) {
+        $error_message = "Telefone inválido.";
+        if ($isAjax) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => $error_message]);
+            exit;
+        } else {
+            echo "<div class='alert alert-danger mx-4 my-3' role='alert'>$error_message</div>";
+            exit;
+        }
+    }
 
     if ($id) {
         $sql = "UPDATE unidades SET 
@@ -159,11 +187,26 @@ if (isset($_POST['salvar'])) {
     }
 
     if ($stmt->execute()) {
-        header("Location: " . $_SERVER['PHP_SELF']);
-        exit;
+        if ($isAjax) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'message' => 'Unidade salva com sucesso!']);
+            exit; 
+        } else {
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
+        }
     } else {
-        echo "<div class='alert alert-danger mx-4 my-3' role='alert'>Erro ao salvar: " . $stmt->error . "</div>";
+        $error_message = "Erro ao salvar: " . $stmt->error;
+        if ($isAjax) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => $error_message]);
+            exit;
+        } else {
+            echo "<div class='alert alert-danger mx-4 my-3' role='alert'>$error_message</div>";
+            exit;
+        }
     }
+    $stmt->close();
     exit;
 }
 
@@ -174,13 +217,13 @@ if (isset($_POST['action']) && $_POST['action'] === 'excluir' && isset($_POST['i
     $stmt->bind_param("i", $id);
 
     if ($stmt->execute()) {
-        echo json_encode(['success' => true]);
+        echo json_encode(['success' => true, 'message' => 'Unidade excluída com sucesso!']);
     } else {
-        echo json_encode(['success' => false, 'error' => $stmt->error]);
+        echo json_encode(['success' => false, 'message' => $stmt->error]);
     }
+    $stmt->close();
     exit;
 }
-
 if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
     $sql_total = "SELECT COUNT(*) as total FROM unidades";
     $result_total = mysqli_query($conn, $sql_total);
@@ -206,7 +249,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
     header('Content-Type: application/json');
     echo json_encode($stats);
     exit;
-}
 ?>
 
 <!DOCTYPE html>
@@ -215,15 +257,18 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gestão de Unidades</title>
-  <link rel="icon" href="/assets/favicon.png" type="image/png">
+  <link rel="icon" href="/portal-repo-og/assets/favicon.png" type="image/png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+      
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  <link rel="stylesheet" href="/styles/global.css">
-  <link rel="stylesheet" href="/styles/header.css">
-  <link rel="stylesheet" href="/styles/sidebar.css">
-  <link rel="stylesheet" href="/styles/responsive.css">
-  <link rel="stylesheet" href="/styles/unidade.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/global.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/header.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/sidebar.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/responsive.css">
+  <link rel="stylesheet" href="/portal-repo-og/styles/unidade.css">
 </head>
 <body>
   <div id="header-container"></div>
@@ -315,13 +360,16 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
                           <?php endif; ?>
                       </div>
                       <div class="unidade-footer">
-                          <button class="btn btn-sm btn-outline-primary me-1 btn-ver" data-id="<?= $row['id'] ?>">
+                          <!-- Botão VER com classe personalizada -->
+                          <button class="btn btn-sm btn-ver-custom me-1" data-id="<?= $row['id'] ?>">
                               <i class="fa fa-eye"></i> Ver
                           </button>
-                          <button class="btn btn-sm btn-outline-warning me-1 btn-editar" data-id="<?= $row['id'] ?>">
+                          <!-- Botão EDITAR com classe personalizada -->
+                          <button class="btn btn-sm btn-editar-custom me-1" data-id="<?= $row['id'] ?>">
                               <i class="fa fa-edit"></i> Editar
                           </button>
-                          <button class="btn btn-sm btn-outline-danger btn-excluir" data-id="<?= $row['id'] ?>">
+                          <!-- Botão EXCLUIR com classe personalizada -->
+                          <button class="btn btn-sm btn-excluir-custom" data-id="<?= $row['id'] ?>">
                               <i class="fa fa-trash"></i> Excluir
                           </button>
                       </div>
@@ -340,7 +388,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
   <div class="modal fade" id="unidadeModal" tabindex="-1" aria-labelledby="unidadeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
-        <form id="formUnidade" method="post" action="">
+        <form id="formUnidade" method="post" action=""> <!-- Mantém action="" -->
           <div class="modal-header">
             <h5 class="modal-title" id="unidadeModalLabel">Cadastrar Nova Unidade</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -394,7 +442,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" name="salvar" class="btn btn-primary-custom">Salvar Unidade</button>
+            <button type="submit" name="salvar" class="btn btn-primary-custom">Salvar Unidade</button> <!-- Mantém name="salvar" -->
           </div>
         </form>
       </div>
@@ -421,9 +469,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/js/unidade.js"></script>
-  <script src="/js/script.js"></script>
-  <script src="/js/sidebar.js"></script>
+  <!-- Mantém script.js e sidebar.js -->
+  <script src="/portal-repo-og/js/script.js"></script>
+  <script src="/portal-repo-og/js/unidade.js"></script>
+  <script src="/portal-repo-og/js/sidebar.js"></script>
   <script>
     function loadTemplate(templatePath, containerId) {
         fetch(templatePath)
@@ -434,6 +483,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
             })
             .catch(err => console.error('Erro ao carregar template:', err));
     }
+
     function loadStats() {
         fetch('?action=load_stats')
             .then(r => r.json())
@@ -444,6 +494,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
             })
             .catch(err => console.error('Erro ao carregar estatísticas:', err));
     }
+
     function loadUnidades() {
         fetch('?action=load_list')
             .then(r => r.text())
@@ -455,7 +506,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
     }
 
     function attachEventListeners() {
-        document.querySelectorAll('.btn-ver').forEach(btn => {
+        document.querySelectorAll('.btn-ver-custom').forEach(btn => {
             btn.addEventListener('click', function() {
                 const id = this.getAttribute('data-id');
                 fetch(`?action=get_unidade&id=${id}`)
@@ -491,7 +542,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
             });
         });
 
-        document.querySelectorAll('.btn-editar').forEach(btn => {
+        document.querySelectorAll('.btn-editar-custom').forEach(btn => {
             btn.addEventListener('click', function() {
                 const id = this.getAttribute('data-id');
                 fetch(`?action=get_unidade&id=${id}`)
@@ -517,22 +568,55 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
                     });
             });
         });
-        document.querySelectorAll('.btn-excluir').forEach(btn => {
+
+        document.querySelectorAll('.btn-excluir-custom').forEach(btn => {
             btn.addEventListener('click', function() {
-                if (!confirm('Tem certeza que deseja excluir esta unidade?')) return;
                 const id = this.getAttribute('data-id');
-                fetch('', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `action=excluir&id=${id}`
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        loadUnidades();
-                        loadStats();
-                    } else {
-                        alert('Erro ao excluir: ' + data.error);
+                Swal.fire({
+                    title: 'Tem certeza?',
+                    text: "Esta ação não pode ser desfeita!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sim, excluir!',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch('', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: `action=excluir&id=${id}`
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                loadUnidades();
+                                loadStats();
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Excluído!',
+                                    text: data.message || 'Unidade excluída com sucesso.',
+                                    confirmButtonColor: '#1C5B40'
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Erro!',
+                                    text: data.message || 'Erro ao excluir unidade.',
+                                    confirmButtonColor: '#DC3545'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro de rede ou parsing JSON:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Erro de Conexão!',
+                                text: 'Erro de conexão ao excluir unidade.',
+                                confirmButtonColor: '#DC3545'
+                            });
+                        });
                     }
                 });
             });
@@ -546,8 +630,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
     }
 
     document.addEventListener("DOMContentLoaded", function () {
-        loadTemplate("/templates/header.php", "header-container");
-        loadTemplate("/templates/sidebar.php", "sidebar-container");
+        loadTemplate('/portal-repo-og/templates/header.php', 'header-container');
+        loadTemplate('/portal-repo-og/templates/sidebar.php', 'sidebar-container');
 
         if (typeof initializeSidebar === 'function') initializeSidebar();
         if (typeof initializeActionButtons === 'function') initializeActionButtons();
@@ -556,6 +640,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
         if (typeof setActiveSidebarLink === 'function') setActiveSidebarLink();
 
         loadStats();
+        loadUnidades();
         attachEventListeners();
 
         document.getElementById('btnEditarUnidade').addEventListener('click', function() {
@@ -583,7 +668,85 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
                     bootstrap.Modal.getInstance(document.getElementById('detalhesUnidadeModal')).hide();
                 });
         });
+
+        const formUnidade = document.getElementById('formUnidade');
+        if (formUnidade) {
+            formUnidade.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const btn = formUnidade.querySelector('[type="submit"]');
+                if (!btn || btn.disabled) return;
+
+                btn.disabled = true;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
+
+                const formData = new FormData(formUnidade);
+                formData.append('salvar', '1'); 
+
+                fetch('', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest" 
+                    }
+                })
+                .then(response => response.json()) 
+                .then(data => {
+                    if (data.success) {
+                        bootstrap.Modal.getInstance(document.getElementById('unidadeModal'))?.hide();
+                        resetFormUnidade();
+                        loadUnidades();
+                        loadStats();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Sucesso!',
+                            text: data.message || 'Unidade salva com sucesso!',
+                            confirmButtonColor: '#1C5B40'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro!',
+                            text: data.message || 'Erro ao salvar unidade.',
+                            confirmButtonColor: '#DC3545'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro de rede ou parsing JSON:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro de Conexão!',
+                        text: 'Erro de conexão ao salvar unidade.',
+                        confirmButtonColor: '#DC3545'
+                    });
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                });
+            });
+        }
     });
+
+    function attachMenuToggle() {
+      const btn = document.getElementById('menu-toggle');
+      const sidebar = document.getElementById('sidebar');
+
+      if (btn && sidebar) {
+        btn.onclick = null;
+        btn.onclick = () => {
+          sidebar.classList.toggle('collapsed');
+        };
+      } else {
+        setTimeout(attachMenuToggle, 300);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      attachMenuToggle();
+    });
   </script>
 </body>
 </html>

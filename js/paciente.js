@@ -1,14 +1,9 @@
-// Função para formatar CRF: 2 letras maiúsculas + até 6 dígitos
 function formatarCRF(valor) {
-    // Remove tudo que não for letra ou número
     valor = valor.replace(/[^A-Za-z0-9]/g, '');
-    // Limita a 8 caracteres (2 letras + 6 dígitos)
     if (valor.length > 8) valor = valor.substring(0, 8);
-    // Converte para maiúsculo
     return valor.toUpperCase();
 }
 
-// Aplica máscara em tempo real
 document.addEventListener('input', function(e) {
     if (e.target.matches('#farmaceuticoModal input[name="crf"]')) {
         const valorAtual = e.target.value;
@@ -22,7 +17,6 @@ document.addEventListener('input', function(e) {
     }
 });
 
-// Impede digitar além do limite (8 caracteres)
 document.addEventListener('keydown', function(e) {
     if (e.target.matches('#farmaceuticoModal input[name="crf"]')) {
         if (e.target.value.length >= 8 && 
@@ -32,14 +26,11 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Garante maxlength
 document.addEventListener('focusin', function(e) {
     if (e.target.matches('#farmaceuticoModal input[name="crf"]')) {
         e.target.setAttribute('maxlength', '8');
     }
 });
-
-// --- RESTANTE DO CÓDIGO (submit, recarregar lista, etc) ---
 
 document.addEventListener("DOMContentLoaded", function () {
     const formFarmaceutico = document.getElementById("formFarmaceutico");

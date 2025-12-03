@@ -26,7 +26,7 @@
   background-color: #e9ecef;
   color: var(--text-primary);
   position: relative;
-  white-space: pre-line; /* ✅ Respeita quebras de linha do texto da IA */
+  white-space: pre-line;
   line-height: 1.5;
 }
 

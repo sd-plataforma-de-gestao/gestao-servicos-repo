@@ -1,12 +1,52 @@
 function initAtendimento() {
-  const tipoBtns = document.querySelectorAll('#tipo-atendimento .btn[data-tipo]');
+  const selecaoPacienteEl = document.getElementById('selecao-paciente');
+  const tipoAtendimentoEl = document.getElementById('tipo-atendimento');
   const chatContainer = document.getElementById('chat-container');
   const chatMessages = document.getElementById('chat-messages');
   const userInput = document.getElementById('user-input');
   const sendBtn = document.getElementById('send-btn');
+  const buscaPaciente = document.getElementById('busca-paciente');
+  const listaPacientes = document.getElementById('lista-pacientes');
 
+  let pacienteSelecionado = null;
   let selectedType = null;
   let chatHistory = [];
+
+  async function carregarPacientes(filtro = '') {
+    try {
+      const url = `atendimento.php?action=listar_pacientes&search=${encodeURIComponent(filtro)}`;
+      const res = await fetch(url);
+      const pacientes = await res.json();
+
+      listaPacientes.innerHTML = pacientes.map(p =>
+        `<a href="#" class="list-group-item list-group-item-action" data-id="${p.id}" data-nome="${p.nome}">
+          <strong>${p.nome}</strong><br>
+          <small>CPF: ${p.cpf ? p.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : '—'}</small>
+        </a>`
+      ).join('') || '<p class="text-muted">Nenhum paciente encontrado.</p>';
+
+    } catch (err) {
+      console.error('Erro ao carregar pacientes:', err);
+      listaPacientes.innerHTML = '<p class="text-danger">Erro ao carregar pacientes.</p>';
+    }
+  }
+
+  listaPacientes.addEventListener('click', (e) => {
+    e.preventDefault();
+    const item = e.target.closest('.list-group-item');
+    if (!item) return;
+    const id = item.getAttribute('data-id');
+    const nome = item.getAttribute('data-nome');
+    pacienteSelecionado = { id, nome };
+    selecaoPacienteEl.classList.add('d-none');
+    tipoAtendimentoEl.classList.remove('d-none');
+  });
+
+  buscaPaciente.addEventListener('input', (e) => {
+    carregarPacientes(e.target.value);
+  });
+
+  carregarPacientes();
 
   function addMessage(text, isUser = false) {
     const messageDiv = document.createElement('div');
@@ -15,7 +55,6 @@ function initAtendimento() {
     messageDiv.textContent = text;
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
-    return messageDiv;
   }
 
   function addSuggestion(text) {
@@ -24,7 +63,6 @@ function initAtendimento() {
     suggestionDiv.textContent = text;
     chatMessages.appendChild(suggestionDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
-    return suggestionDiv;
   }
 
   function clearChat() {
@@ -32,24 +70,78 @@ function initAtendimento() {
     chatHistory = [];
   }
 
+  function finalizarAtendimento() {
+    if (!pacienteSelecionado) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro!',
+        text: 'Nenhum paciente selecionado.',
+        confirmButtonColor: '#DC3545'
+      });
+      return;
+    }
+
+    fetch('atendimento.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        paciente_id: pacienteSelecionado.id,
+        chatHistory: chatHistory,
+        tipo_atendimento: selectedType === 'agudo' ? 'Agudo' : 'Crônico'
+      })
+    })
+    .then(r => r.text())
+    .then(msg => {
+      if (msg.trim().startsWith("Erro")) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Ops...',
+          text: msg,
+          confirmButtonColor: '#DC3545'
+        });
+      } else {
+        Swal.fire({
+          icon: 'success',
+          title: 'Sucesso!',
+          text: msg,
+          confirmButtonColor: '#1C5B40'
+        }).then(() => {
+          window.location.href = 'historico_atendimento.php';
+        });
+      }
+    })
+    .catch(() => {
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro de Conexão!',
+        text: 'Erro ao salvar o atendimento.',
+        confirmButtonColor: '#DC3545'
+      });
+    });
+  }
+
+  document.getElementById('btn-finalizar-atendimento')?.addEventListener('click', finalizarAtendimento);
+
+  const tipoBtns = document.querySelectorAll('#tipo-atendimento .btn[data-tipo]');
   tipoBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       selectedType = btn.getAttribute('data-tipo');
       tipoBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
+      tipoAtendimentoEl.classList.add('d-none');
       chatContainer.classList.remove('d-none');
+      userInput.disabled = false;
+      sendBtn.disabled = false;
+      userInput.focus();
 
       clearChat();
-      addMessage(`✅ Atendimento ${selectedType === 'agudo' ? 'agudo' : 'crônico'} iniciado.`, false);
-      addMessage("Olá! Sou seu assistente farmacêutico. Como posso ajudar?", false);
+      addMessage(`Atendimento ${selectedType === 'agudo' ? 'agudo' : 'crônico'} iniciado para ${pacienteSelecionado.nome}.`, false);
+      addMessage("Como posso ajudar hoje?", false);
 
-      addSuggestion("Pergunte ao paciente sobre a duração dos sintomas.");
-      addSuggestion("Verifique se há uso de outros medicamentos.");
-      addSuggestion("Avalie sinais de alerta como febre alta ou falta de ar.");
-
-      userInput.disabled = false;
-      userInput.focus();
+      addSuggestion("Pergunte sobre duração dos sintomas.");
+      addSuggestion("Verifique uso de outros medicamentos.");
+      addSuggestion("Avalie sinais de alerta.");
     });
   });
 
@@ -60,6 +152,11 @@ function initAtendimento() {
     addMessage(message, true);
     userInput.value = '';
 
+    if (message.toLowerCase() === "finalizar atendimento") {
+      finalizarAtendimento();
+      return;
+    }
+
     callGeminiAPI(message);
   }
 
@@ -68,28 +165,13 @@ function initAtendimento() {
     if (e.key === 'Enter') sendMessage();
   });
 
-  const GEMINI_API_KEY = 'AIzaSyBRlDmktgFcVV65lXSpat9Y9x9q8wDHcGk'; // CHAVE DA API DO GEMINI
+  // API KEY DO GEMINI
+  const GEMINI_API_KEY = 'AIzaSyBRlDmktgFcVV65lXSpat9Y9x9q8wDHcGk';
 
   async function callGeminiAPI(userMessage) {
     const thinkingElement = addMessage("Processando...", false);
 
-    const systemPrompt = `
-Você é um assistente farmacêutico virtual, especializado em auxiliar farmacêuticos no atendimento ao paciente.
-O tipo de atendimento é: ${selectedType === 'agudo' ? 'Agudo (sintomas recentes)' : 'Crônico (acompanhamento contínuo)'}.
-
-REGRAS:
-1. Responda sempre com linguagem clara, profissional e empática.
-2. Use parágrafos curtos para melhor leitura.
-3. AO FINAL da sua resposta, inclua exatamente 3 sugestões para o farmacêutico, no formato:
-
-[SUGESTÕES]
-1. Sugestão 1 aqui.
-2. Sugestão 2 aqui.
-3. Sugestão 3 aqui.
-
-NÃO escreva nada depois das sugestões. NÃO use markdown. NÃO formate em negrito ou itálico.
-Evite diagnósticos médicos — oriente sempre que o paciente procure um médico quando necessário.
-    `;
+    const   systemPrompt = `teste de atendimento farmacêutico. Você é um assistente virtual especializado em fornecer suporte farmacêutico para pacientes. Siga estas regras estritamente:`;
 
     const messages = [
       { role: "user", parts: [{ text: systemPrompt }] },
@@ -97,7 +179,7 @@ Evite diagnósticos médicos — oriente sempre que o paciente procure um médic
       ...chatHistory.map(msg => ({
         role: msg.isUser ? "user" : "model",
         parts: [{ text: msg.text }]
-      })),
+      })),    
       { role: "user", parts: [{ text: userMessage }] }
     ];
 
@@ -142,7 +224,6 @@ Evite diagnósticos médicos — oriente sempre que o paciente procure um médic
           if (s) addSuggestion(s);
         });
       } else {
-        // Fallback
         addSuggestion("Pergunte mais detalhes sobre os sintomas.");
         addSuggestion("Verifique histórico de alergias medicamentosas.");
         addSuggestion("Oriente repouso e hidratação se aplicável.");
@@ -153,14 +234,10 @@ Evite diagnósticos médicos — oriente sempre que o paciente procure um médic
 
     } catch (error) {
       console.error("Erro ao chamar a API do Gemini:", error);
-
       if (chatMessages.contains(thinkingElement)) {
         chatMessages.removeChild(thinkingElement);
       }
-
-      addMessage("⚠️ Erro ao conectar com a IA. Verifique sua chave de API ou conexão.", false);
+      addMessage("Erro ao conectar com a IA. Verifique sua chave de API ou conexão.", false);
     }
   }
-
-  userInput.disabled = true;
 }

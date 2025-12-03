@@ -1,17 +1,38 @@
 <?php
-//include_once __DIR__ . '/../config/auth.php';
+session_start();
+include(__DIR__ . '/config/database.php');
 
-//if (!Auth::isAuthenticated()) {
-    //header("Location: /portal-repo-og/templates/login.php");
-    //exit();
-//}
-//?>
+$message = '';
 
-$message = isset($_GET['message']) ? urldecode($_GET['message']) : '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $crf = strtoupper(trim($_POST['crf'] ?? ''));
+    $senha = $_POST['senha'] ?? '';
+
+    if (empty($crf) || empty($senha)) {
+        $message = 'CRF e senha são obrigatórios.';
+    } else {
+        $stmt = $conn->prepare("SELECT id, nome, crf, senha FROM farmaceuticos WHERE crf = ? AND status = 'ativo'");
+        $stmt->bind_param("s", $crf);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($row = $result->fetch_assoc()) {
+            if (password_verify($senha, $row['senha'])) {
+                $_SESSION['farmaceutico_id'] = $row['id'];
+                $_SESSION['farmaceutico_nome'] = $row['nome'];
+                $_SESSION['farmaceutico_crf'] = $row['crf'];
+                header("Location: /portal-repo-og/index.php");
+                exit;
+            }
+        }
+        $message = 'CRF ou senha inválidos.';
+    }
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,6 +41,7 @@ $message = isset($_GET['message']) ? urldecode($_GET['message']) : '';
     <link rel="stylesheet" href="/portal-repo-og/styles/login.css">
     <link rel="icon" href="/portal-repo-og/assets/favicon.png" type="image/png">
 </head>
+
 <body>
     <div class="login-container">
         <div class="login-left">
@@ -31,11 +53,11 @@ $message = isset($_GET['message']) ? urldecode($_GET['message']) : '';
 
             <?php if (!empty($message)): ?>
                 <div class="alert alert-danger" style="margin: 15px 0; padding: 12px; border-radius: 6px;">
-                    <?= htmlspecialchars($message) ?>
+                    <?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?>
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="/portal-repo-og/logar.php" class="login-form" style="width: 100%;">
+            <form method="POST" action=""  style="width: 100%;">
                 <div class="form-group">
                     <label for="CRF">CRF:</label>
                     <input type="text" id="CRF" name="crf" class="form-control" required>
@@ -44,10 +66,7 @@ $message = isset($_GET['message']) ? urldecode($_GET['message']) : '';
                     <label for="senha">Senha:</label>
                     <input type="password" id="senha" name="senha" class="form-control" required>
                 </div>
-                <div class="form-links">
-                    <a href="#" class="text-primary">Cadastre-se</a>
-                    <a href="#" class="text-primary">Esqueceu sua senha?</a>
-                </div>
+                
                 <button type="submit" class="btn-primary-custom btn-login">Entrar</button>
             </form>
 
@@ -55,4 +74,5 @@ $message = isset($_GET['message']) ? urldecode($_GET['message']) : '';
         </div>
     </div>
 </body>
+
 </html>

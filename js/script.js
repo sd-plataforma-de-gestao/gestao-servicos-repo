@@ -58,9 +58,6 @@ function handleActionClick(action) {
         case 'Buscar Paciente':
             showSearchModal();
             break;
-        case 'Agendar Retorno':
-            showScheduleModal();
-            break;
         case 'Gerar Relatório':
             generateReport();
             break;
@@ -140,7 +137,7 @@ function showScheduleModal() {
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Agendar Retorno</h5>
+                    
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -357,4 +354,35 @@ function setActiveSidebarLink() {
       link.classList.remove("active");
     }
   });
+
+  
+}
+/**
+ * @param {string} type
+ * @param {string} title
+ * @param {string} text
+ */
+function showCustomAlert(type, title, text) {
+    if (typeof Swal === 'undefined') {
+        console.error("SweetAlert2 não está carregado. Alerta não pode ser exibido. Usando fallback.");
+        alert(title + "\n\n" + text);
+        return;
+    }
+
+    let confirmColor = '#1C5B40';
+    
+    if (type === 'error' || type === 'warning') {
+        confirmColor = '#DC3545';
+    }
+
+    Swal.fire({
+        icon: type,
+        title: title,
+        text: text,
+        showConfirmButton: true,
+        confirmButtonText: 'OK',
+        confirmButtonColor: confirmColor,
+        timer: type === 'success' ? 3000 : false,
+        timerProgressBar: type === 'success' ? true : false
+    });
 }

@@ -1,40 +1,427 @@
-<?php include("../config/database.php"); ?>
-
 <?php
+session_start();
+if (!isset($_SESSION['farmaceutico_id'])) {
+    header("Location: /portal-repo-og/login.php");
+    exit;
+}
+include(__DIR__ . '/../config/database.php');
+date_default_timezone_set('America/Sao_Paulo');
+
+function getDataInicio($periodo) {
+    $hoje = new DateTime();
+    switch ($periodo) {
+        case '7':
+            $inicio = $hoje->modify('-7 days');
+            break;
+        case '30':
+            $inicio = $hoje->modify('-30 days');
+            break;
+        case '90':
+            $inicio = $hoje->modify('-90 days');
+            break;
+        case '365':
+            $inicio = $hoje->modify('-1 year');
+            break;
+        default:
+            $inicio = $hoje->modify('-30 days');
+            break;
+    }
+    return $inicio->format('Y-m-d 00:00:00');
+}
+
+function getDataInicioAnterior($periodo) {
+    $hoje = new DateTime();
+    $periodo_atual_inicio = clone $hoje;
+    $periodo_atual_fim = clone $hoje;
+
+    switch ($periodo) {
+        case '7':
+            $periodo_atual_inicio->modify('-7 days');
+            $periodo_anterior_inicio = clone $periodo_atual_inicio;
+            $periodo_anterior_fim = clone $periodo_atual_inicio;
+            $periodo_anterior_inicio->modify('-7 days');
+            break;
+        case '30':
+            $periodo_atual_inicio->modify('-30 days');
+            $periodo_anterior_inicio = clone $periodo_atual_inicio;
+            $periodo_anterior_fim = clone $periodo_atual_inicio;
+            $periodo_anterior_inicio->modify('-30 days');
+            break;
+        case '90':
+            $periodo_atual_inicio->modify('-90 days');
+            $periodo_anterior_inicio = clone $periodo_atual_inicio;
+            $periodo_anterior_fim = clone $periodo_atual_inicio;
+            $periodo_anterior_inicio->modify('-90 days');
+            break;
+        case '365':
+            $periodo_atual_inicio->modify('-1 year');
+            $periodo_anterior_inicio = clone $periodo_atual_inicio;
+            $periodo_anterior_fim = clone $periodo_atual_inicio;
+            $periodo_anterior_inicio->modify('-1 year');
+            break;
+        default:
+            $periodo_atual_inicio->modify('-30 days');
+            $periodo_anterior_inicio = clone $periodo_atual_inicio;
+            $periodo_anterior_fim = clone $periodo_atual_inicio;
+            $periodo_anterior_inicio->modify('-30 days');
+            break;
+    }
+    return [$periodo_anterior_inicio->format('Y-m-d H:i:s'), $periodo_anterior_fim->format('Y-m-d H:i:s')];
+}
+
+if (isset($_GET['action']) && $_GET['action'] === 'get_tratamentos_continuos') {
+    try {
+        $sql = "
+            SELECT 
+                p.nome as paciente_nome, 
+                m.nome as medicamento_nome,
+                MIN(a.criado_em) as data_inicio_tratamento,
+                COUNT(am.id) as total_dispensacoes
+            FROM atendimentos a
+            JOIN pacientes p ON a.paciente_id = p.id
+            JOIN atendimento_medicamentos am ON a.id = am.atendimento_id
+            JOIN medicamentos m ON am.medicamento_id = m.id
+            WHERE a.status_atendimento = 'Concluído'
+            AND p.tipo_paciente = 'cronico' -- Focando em pacientes crônicos
+            GROUP BY p.id, m.id
+            HAVING total_dispensacoes >= 2 -- Pelo menos 2 dispensações
+            ORDER BY total_dispensacoes DESC
+            LIMIT 20
+        ";
+        $result = $conn->query($sql);
+        if (!$result) throw new Exception("Erro na consulta de tratamentos contínuos: " . $conn->error);
+
+        $data = [];
+        while ($row = $result->fetch_assoc()) {
+            $data[] = [
+                'paciente_nome' => $row['paciente_nome'],
+                'medicamento_nome' => $row['medicamento_nome'],
+                'data_inicio_tratamento' => date('d/m/Y', strtotime($row['data_inicio_tratamento'])),
+                'total_dispensacoes' => (int)$row['total_dispensacoes']
+            ];
+        }
+        header('Content-Type: application/json');
+        echo json_encode($data);
+    } catch (Exception $e) {
+        header('Content-Type: application/json');
+        http_response_code(500);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+    exit;
+}
+
+if (isset($_GET['action']) && $_GET['action'] === 'get_dispensacoes') {
+    $filtro_data_inicio = $_GET['data_inicio'] ?? null;
+    $filtro_data_fim = $_GET['data_fim'] ?? null;
+    $filtro_tipo = $_GET['tipo'] ?? null;
+    $filtro_paciente = $_GET['paciente'] ?? null;
+
+    $where = "WHERE a.status_atendimento = 'Concluído'";
+    $params = [];
+    $types = '';
+
+    if ($filtro_data_inicio) {
+        $where .= " AND a.criado_em >= ?";
+        $params[] = $filtro_data_inicio . ' 00:00:00';
+        $types .= 's';
+    }
+    if ($filtro_data_fim) {
+        $where .= " AND a.criado_em <= ?";
+        $params[] = $filtro_data_fim . ' 23:59:59';
+        $types .= 's';
+    }
+    if ($filtro_tipo) {
+        $where .= " AND a.tipo_atendimento = ?";
+        $params[] = $filtro_tipo;
+        $types .= 's';
+    }
+    if ($filtro_paciente) {
+        $where .= " AND p.nome LIKE ?";
+        $params[] = "%$filtro_paciente%";
+        $types .= 's';
+    }
+
+    try {
+        $sql = "
+            SELECT 
+                a.id as atendimento_id,
+                a.criado_em as data_atendimento,
+                p.nome as paciente_nome,
+                m.nome as medicamento_nome,
+                am.quantidade_dispensada,
+                a.tipo_atendimento
+            FROM atendimentos a
+            JOIN pacientes p ON a.paciente_id = p.id
+            JOIN atendimento_medicamentos am ON a.id = am.atendimento_id
+            JOIN medicamentos m ON am.medicamento_id = m.id
+            $where
+            ORDER BY a.criado_em DESC
+            LIMIT 50
+        ";
+        $stmt = $conn->prepare($sql);
+        if ($params) $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if (!$result) throw new Exception("Erro na consulta de dispensações: " . $conn->error);
+
+        $data = [];
+        while ($row = $result->fetch_assoc()) {
+            $data[] = [
+                'atendimento_id' => (int)$row['atendimento_id'],
+                'data_atendimento' => date('d/m/Y H:i', strtotime($row['data_atendimento'])),
+                'paciente_nome' => $row['paciente_nome'],
+                'medicamento_nome' => $row['medicamento_nome'],
+                'quantidade_dispensada' => (int)$row['quantidade_dispensada'],
+                'tipo_atendimento' => $row['tipo_atendimento']
+            ];
+        }
+        header('Content-Type: application/json');
+        echo json_encode($data);
+    } catch (Exception $e) {
+        header('Content-Type: application/json');
+        http_response_code(500);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+    exit;
+}
+
+if (isset($_GET['action']) && $_GET['action'] === 'get_interacoes_paciente') {
+    $id_paciente = (int)($_GET['id'] ?? 0);
+    if (!$id_paciente) {
+        http_response_code(400);
+        echo json_encode(['error' => 'ID do paciente inválido.']);
+        exit;
+    }
+
+    try {
+        $sql = "
+            SELECT DISTINCT m1.nome as medicamento1, m2.nome as medicamento2
+            FROM atendimento_medicamentos am1
+            JOIN atendimento_medicamentos am2 ON am1.atendimento_id = am2.atendimento_id
+            JOIN medicamentos m1 ON am1.medicamento_id = m1.id
+            JOIN medicamentos m2 ON am2.medicamento_id = m2.id
+            WHERE am1.atendimento_id IN (
+                SELECT id FROM atendimentos WHERE paciente_id = ? AND status_atendimento = 'Concluído'
+            )
+            AND am1.medicamento_id != am2.medicamento_id
+            AND m1.principio_ativo != m2.principio_ativo -- Exclui medicamentos com o mesmo princípio ativo
+            LIMIT 10
+        ";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('i', $id_paciente);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if (!$result) throw new Exception("Erro na consulta de interações: " . $conn->error);
+
+        $data = [];
+        while ($row = $result->fetch_assoc()) {
+            $data[] = [
+                'medicamento1' => $row['medicamento1'],
+                'medicamento2' => $row['medicamento2'],
+                'descricao' => 'Possível interação entre medicamentos'
+            ];
+        }
+        header('Content-Type: application/json');
+        echo json_encode($data);
+    } catch (Exception $e) {
+        header('Content-Type: application/json');
+        http_response_code(500);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+    exit;
+}
+
 if (isset($_GET['action']) && $_GET['action'] === 'load_insights') {
-    $periodo = $_GET['periodo'] ?? '30'; // padrão: últimos 30 dias
+    $periodo = $_GET['periodo'] ?? '30';
+    $data_inicio = getDataInicio($periodo);
+    list($data_inicio_anterior, $data_fim_anterior) = getDataInicioAnterior($periodo);
 
-    $receita_total = number_format(rand(15000, 80000), 2, ',', '.');
-    $total_vendas = rand(80, 400);
-    $novos_clientes = rand(15, 60);
-    $taxa_conversao = rand(65, 95);
+    try {
+        $sql_pacientes_ativos = "SELECT COUNT(*) AS total FROM pacientes WHERE status = 'ativo'";
+        $result_pacientes_ativos = $conn->query($sql_pacientes_ativos);
+        if (!$result_pacientes_ativos) {
+            throw new Exception("Erro na consulta de pacientes: " . $conn->error);
+        }
+        $total_pacientes_ativos = $result_pacientes_ativos->fetch_assoc()['total'];
 
-    $data = [
-        'receita_total' => "R$ {$receita_total}",
-        'total_vendas' => $total_vendas,
-        'novos_clientes' => $novos_clientes,
-        'taxa_conversao' => "{$taxa_conversao}%",
-        'receita_variacao' => '+' . rand(2, 15) . '%',
-        'vendas_variacao' => '+' . rand(1, 12) . '%',
-        'clientes_variacao' => (rand(0,1) ? '+' : '-') . rand(1, 8) . '%',
-        'conversao_variacao' => '+' . rand(1, 7) . '%',
-    ];
+        $sql_atendimentos_atual = "
+            SELECT COUNT(*) AS total_atendimentos
+            FROM atendimentos
+            WHERE status_atendimento = 'Concluído'
+            AND criado_em BETWEEN ? AND NOW()
+        ";
+        $stmt_atendimentos_atual = $conn->prepare($sql_atendimentos_atual);
+        if (!$stmt_atendimentos_atual) {
+            throw new Exception("Erro na preparação da consulta de atendimentos (atual): " . $conn->error);
+        }
+        $stmt_atendimentos_atual->bind_param("s", $data_inicio);
+        $stmt_atendimentos_atual->execute();
+        $result_atendimentos_atual = $stmt_atendimentos_atual->get_result();
+        $total_atendimentos_atual = $result_atendimentos_atual->fetch_assoc()['total_atendimentos'];
+        $stmt_atendimentos_atual->close();
 
-    header('Content-Type: application/json');
-    echo json_encode($data);
+        $sql_farmaceuticos_ativos = "SELECT COUNT(*) AS total FROM farmaceuticos WHERE status = 'ativo'";
+        $result_farmaceuticos_ativos = $conn->query($sql_farmaceuticos_ativos);
+        if (!$result_farmaceuticos_ativos) {
+            throw new Exception("Erro na consulta de farmacêuticos: " . $conn->error);
+        }
+        $total_farmaceuticos_ativos = $result_farmaceuticos_ativos->fetch_assoc()['total'];
+
+        $sql_medicamentos_ativos = "SELECT COUNT(*) AS total FROM medicamentos WHERE quantidade > 0";
+        $result_medicamentos_ativos = $conn->query($sql_medicamentos_ativos);
+        if (!$result_medicamentos_ativos) {
+            throw new Exception("Erro na consulta de medicamentos: " . $conn->error);
+        }
+        $total_medicamentos_ativos = $result_medicamentos_ativos->fetch_assoc()['total'];
+
+        $sql_atendimentos_anterior = "
+            SELECT COUNT(*) AS total_atendimentos
+            FROM atendimentos
+            WHERE status_atendimento = 'Concluído'
+            AND criado_em BETWEEN ? AND ?
+        ";
+        $stmt_atendimentos_anterior = $conn->prepare($sql_atendimentos_anterior);
+        if (!$stmt_atendimentos_anterior) {
+            throw new Exception("Erro na preparação da consulta de atendimentos (anterior): " . $conn->error);
+        }
+        $stmt_atendimentos_anterior->bind_param("ss", $data_inicio_anterior, $data_fim_anterior);
+        $stmt_atendimentos_anterior->execute();
+        $result_atendimentos_anterior = $stmt_atendimentos_anterior->get_result();
+        $total_atendimentos_anterior = $result_atendimentos_anterior->fetch_assoc()['total_atendimentos'];
+        $stmt_atendimentos_anterior->close();
+
+        $atendimentos_variacao = 0;
+        if ($total_atendimentos_anterior != 0) {
+            $atendimentos_variacao = (($total_atendimentos_atual - $total_atendimentos_anterior) / $total_atendimentos_anterior) * 100;
+        } elseif ($total_atendimentos_atual > 0) {
+            $atendimentos_variacao = 100;
+        }
+
+        $data = [
+            'total_pacientes_ativos' => (int)$total_pacientes_ativos,
+            'total_atendimentos' => (int)$total_atendimentos_atual,
+            'total_farmaceuticos_ativos' => (int)$total_farmaceuticos_ativos,
+            'total_medicamentos_ativos' => (int)$total_medicamentos_ativos,
+            'atendimentos_variacao' => ($atendimentos_variacao >= 0 ? '+' : '') . number_format($atendimentos_variacao, 2, ',', '.') . '%',
+        ];
+
+        $sql_tipo = "
+            SELECT tipo_atendimento, COUNT(*) as quantidade
+            FROM atendimentos
+            WHERE status_atendimento = 'Concluído'
+            AND criado_em BETWEEN ? AND NOW()
+            GROUP BY tipo_atendimento
+        ";
+        $stmt_tipo = $conn->prepare($sql_tipo);
+        if (!$stmt_tipo) {
+            throw new Exception("Erro na preparação da consulta de tipos de atendimento: " . $conn->error);
+        }
+        $stmt_tipo->bind_param("s", $data_inicio);
+        $stmt_tipo->execute();
+        $result_tipo = $stmt_tipo->get_result();
+        $atendimentos_por_tipo = [];
+        while ($row = $result_tipo->fetch_assoc()) {
+            $atendimentos_por_tipo[] = [
+                'tipo' => $row['tipo_atendimento'],
+                'quantidade' => (int)$row['quantidade']
+            ];
+        }
+        $stmt_tipo->close();
+        $data['atendimentos_por_tipo'] = $atendimentos_por_tipo;
+
+        $sql_top_pacientes = "
+            SELECT p.nome, COUNT(a.id) as atendimentos
+            FROM pacientes p
+            JOIN atendimentos a ON p.id = a.paciente_id
+            WHERE a.status_atendimento = 'Concluído'
+            AND a.criado_em BETWEEN ? AND NOW()
+            AND p.status = 'ativo'
+            GROUP BY p.id, p.nome
+            ORDER BY atendimentos DESC
+            LIMIT 5
+        ";
+        $stmt_top_pacientes = $conn->prepare($sql_top_pacientes);
+        if (!$stmt_top_pacientes) {
+            throw new Exception("Erro na preparação da consulta de top pacientes: " . $conn->error);
+        }
+        $stmt_top_pacientes->bind_param("s", $data_inicio);
+        $stmt_top_pacientes->execute();
+        $result_top_pacientes = $stmt_top_pacientes->get_result();
+        $top_pacientes = [];
+        while ($row = $result_top_pacientes->fetch_assoc()) {
+            $top_pacientes[] = [
+                'nome' => $row['nome'],
+                'atendimentos' => (int)$row['atendimentos']
+            ];
+        }
+        $stmt_top_pacientes->close();
+        $data['top_pacientes'] = $top_pacientes;
+
+        $sql_periodo = "
+            SELECT 
+                CONCAT('Sem ', WEEK(criado_em, 1) - WEEK(DATE_SUB(NOW(), INTERVAL 4 WEEK), 1) + 1) as periodo_label,
+                COUNT(*) as quantidade
+            FROM atendimentos
+            WHERE status_atendimento = 'Concluído'
+            AND criado_em >= DATE_SUB(NOW(), INTERVAL 4 WEEK)
+            GROUP BY YEARWEEK(criado_em, 1)
+            ORDER BY criado_em ASC
+            LIMIT 4
+        ";
+        $result_periodo = $conn->query($sql_periodo);
+        if (!$result_periodo) {
+            throw new Exception("Erro na consulta de atendimentos por período: " . $conn->error);
+        }
+        $labels_periodo = [];
+        $dados_periodo = [];
+        while ($row = $result_periodo->fetch_assoc()) {
+            $labels_periodo[] = $row['periodo_label'];
+            $dados_periodo[] = (int)$row['quantidade'];
+        }
+        $data['atendimentos_por_periodo'] = [
+            'labels' => $labels_periodo,
+            'quantidade' => $dados_periodo
+        ];
+
+        header('Content-Type: application/json');
+        echo json_encode($data);
+    } catch (Exception $e) {
+        header('Content-Type: application/json');
+        http_response_code(500);
+        echo json_encode(['error' => 'Erro interno no servidor: ' . $e->getMessage()]);
+        exit;
+    }
     exit;
 }
-if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
-    header('Content-Type: text/csv');
-    header('Content-Disposition: attachment; filename="relatorio_insights.csv"');
 
-    echo "Métrica,Valor\n";
-    echo "Receita Total,R$ 45.280,00\n";
-    echo "Atendimentos,237\n";
-    echo "Novos Pacientes,42\n";
-    echo "Taxa de Adesão,83%\n";
+if (isset($_GET['action']) && $_GET['action'] === 'get_recent_atendimentos') {
+    try {
+        $sql_recentes = "
+            SELECT a.id, a.criado_em, a.tipo_atendimento, a.status_atendimento, p.nome as paciente_nome
+            FROM atendimentos a
+            JOIN pacientes p ON a.paciente_id = p.id
+            ORDER BY a.criado_em DESC
+            LIMIT 10
+        ";
+        $result_recentes = $conn->query($sql_recentes);
+        if (!$result_recentes) {
+            throw new Exception("Erro na consulta de atendimentos recentes: " . $conn->error);
+        }
+        $atendimentos_recentes = [];
+        while ($row = $result_recentes->fetch_assoc()) {
+            $atendimentos_recentes[] = $row;
+        }
+        header('Content-Type: application/json');
+        echo json_encode($atendimentos_recentes);
+    } catch (Exception $e) {
+        header('Content-Type: application/json');
+        http_response_code(500);
+        echo json_encode(['error' => 'Erro ao carregar atendimentos recentes: ' . $e->getMessage()]);
+        exit;
+    }
     exit;
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -46,12 +433,14 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="/assets/favicon.png">
+    <link rel="icon" href="/portal-repo-og/assets/favicon.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="/styles/global.css">
-    <link rel="stylesheet" href="/styles/header.css">
-    <link rel="stylesheet" href="/styles/sidebar.css">
-    <link rel="stylesheet" href="/styles/insights.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="/portal-repo-og/styles/global.css">
+    <link rel="stylesheet" href="/portal-repo-og/styles/header.css">
+    <link rel="stylesheet" href="/portal-repo-og/styles/sidebar.css">
+    <link rel="stylesheet" href="/portal-repo-og/styles/insights.css">
 </head>
 <body>
     <div id="loading-overlay" class="loading-overlay d-none">
@@ -103,6 +492,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                         <button class="btn btn-outline-success ms-2" id="exportar-relatorio">
                             <i class="fas fa-download me-1"></i> Exportar
                         </button>
+                        <!-- <button class="btn btn-outline-success ms-2" id="ver-relatorio-foda">
+                            <i class="fas fa-chart-line me-1"></i> Relatório
+                        </button>
+                        <!-->
                     </div>
                 </div>
             </div>
@@ -114,15 +507,12 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                             <div class="card-body">
                                 <div class="d-flex align-items-center">
                                     <div class="icon-circle bg-primary text-white me-3">
-                                        <i class="fas fa-chart-line"></i>
+                                        <i class="fas fa-users"></i>
                                     </div>
                                     <div>
-                                        <h6 class="card-subtitle mb-1 text-muted">Receita Total</h6>
-                                        <h4 class="card-title mb-0" id="receita-total">R$ 0,00</h4>
-                                        <small class="text-success">
-                                            <i class="fas fa-arrow-up"></i>
-                                            <span id="receita-variacao">+0%</span> vs período anterior
-                                        </small>
+                                        <h6 class="card-subtitle mb-1 text-muted">Pacientes Ativos</h6>
+                                        <h4 class="card-title mb-0" id="total-pacientes">0</h4>
+                                        <small class="text-muted">Total cadastrados</small>
                                     </div>
                                 </div>
                             </div>
@@ -134,34 +524,14 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                             <div class="card-body">
                                 <div class="d-flex align-items-center">
                                     <div class="icon-circle bg-success text-white me-3">
-                                        <i class="fas fa-shopping-cart"></i>
+                                        <i class="fas fa-stethoscope"></i>
                                     </div>
                                     <div>
-                                        <h6 class="card-subtitle mb-1 text-muted">Atendimentos</h6>
-                                        <h4 class="card-title mb-0" id="total-vendas">0</h4>
+                                        <h6 class="card-subtitle mb-1 text-muted">Atendimentos Concluídos</h6>
+                                        <h4 class="card-title mb-0" id="total-atendimentos">0</h4>
                                         <small class="text-success">
                                             <i class="fas fa-arrow-up"></i>
-                                            <span id="vendas-variacao">+0%</span> vs período anterior
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-xl-3 col-md-6 mb-3">
-                        <div class="card metric-card">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center">
-                                    <div class="icon-circle bg-warning text-white me-3">
-                                        <i class="fas fa-users"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="card-subtitle mb-1 text-muted">Novos Pacientes</h6>
-                                        <h4 class="card-title mb-0" id="novos-clientes">0</h4>
-                                        <small class="text-warning">
-                                            <i class="fas fa-arrow-down"></i>
-                                            <span id="clientes-variacao">-0%</span> vs período anterior
+                                            <span id="atendimentos-variacao">+0%</span> vs período anterior
                                         </small>
                                     </div>
                                 </div>
@@ -174,15 +544,29 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                             <div class="card-body">
                                 <div class="d-flex align-items-center">
                                     <div class="icon-circle bg-info text-white me-3">
-                                        <i class="fas fa-percentage"></i>
+                                        <i class="fas fa-user-md"></i>
                                     </div>
                                     <div>
-                                        <h6 class="card-subtitle mb-1 text-muted">Taxa de Adesão</h6>
-                                        <h4 class="card-title mb-0" id="taxa-conversao">0%</h4>
-                                        <small class="text-success">
-                                            <i class="fas fa-arrow-up"></i>
-                                            <span id="conversao-variacao">+0%</span> vs período anterior
-                                        </small>
+                                        <h6 class="card-subtitle mb-1 text-muted">Farmacêuticos Ativos</h6>
+                                        <h4 class="card-title mb-0" id="total-farmaceuticos">0</h4>
+                                        <small class="text-muted">Total cadastrados</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-3">
+                        <div class="card metric-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-circle bg-warning text-white me-3">
+                                        <i class="fas fa-pills"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="card-subtitle mb-1 text-muted">Medicamentos Ativos</h6>
+                                        <h4 class="card-title mb-0" id="total-medicamentos">0</h4>
+                                        <small class="text-muted">Com estoque disponível</small>
                                     </div>
                                 </div>
                             </div>
@@ -193,23 +577,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
 
             <div class="charts-section mb-4">
                 <div class="row">
-                    <div class="col-lg-8 mb-4">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="card-title mb-0">Atendimentos por Período</h5>
-                                <div class="chart-controls">
-                                    <button class="btn btn-sm btn-outline-primary active" data-chart-type="vendas" data-period="diario">Diário</button>
-                                    <button class="btn btn-sm btn-outline-primary" data-chart-type="vendas" data-period="semanal">Semanal</button>
-                                    <button class="btn btn-sm btn-outline-primary" data-chart-type="vendas" data-period="mensal">Mensal</button>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="vendas-chart" height="300"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 mb-4">
+                    <div class="col-lg-6 mb-4">
                         <div class="card">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">Atendimentos por Tipo</h5>
@@ -219,27 +587,18 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-lg-6 mb-4">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Funil de Pacientes</h5>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="funil-chart" height="300"></canvas>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="col-lg-6 mb-4">
                         <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Receita vs Custos</h5>
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">Atendimentos por Período</h5>
+                                <div class="chart-controls">
+                                    <button class="btn btn-sm btn-outline-primary active" data-chart-type="vendas" data-period="semanal">Semanal</button>
+                                    <button class="btn btn-sm btn-outline-primary" data-chart-type="vendas" data-period="mensal">Mensal</button>
+                                </div>
                             </div>
                             <div class="card-body">
-                                <canvas id="receita-custos-chart" height="300"></canvas>
+                                <canvas id="vendas-chart" height="300"></canvas>
                             </div>
                         </div>
                     </div>
@@ -248,46 +607,18 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
 
             <div class="tables-section">
                 <div class="row">
-                    <div class="col-lg-6 mb-4">
+                    <div class="col-12">
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="card-title mb-0">Top 10 Medicamentos</h5>
-                                <button class="btn btn-sm btn-outline-primary" id="ver-todos-produtos">Ver Todos</button>
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Top 5 Pacientes (Últimos Atendimentos)</h5>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
-                                    <table class="table table-hover mb-0" id="top-produtos-table">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Medicamento</th>
-                                                <th>Dispensações</th>
-                                                <th>Receita</th>
-                                                <th>Variação</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-6 mb-4">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="card-title mb-0">Top 10 Pacientes</h5>
-                                <button class="btn btn-sm btn-outline-primary" id="ver-todos-clientes">Ver Todos</button>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0" id="top-clientes-table">
+                                    <table class="table table-hover mb-0" id="top-pacientes-table">
                                         <thead class="table-light">
                                             <tr>
                                                 <th>Paciente</th>
-                                                <th>Atendimentos</th>
-                                                <th>Total Gasto</th>
-                                                <th>Último Atendimento</th>
+                                                <th>Nº Atendimentos</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -299,7 +630,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                     </div>
                 </div>
 
-                <div class="row">
+                <div class="row mt-4">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
@@ -319,9 +650,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                                                 <th>ID</th>
                                                 <th>Data</th>
                                                 <th>Paciente</th>
-                                                <th>Medicamento</th>
                                                 <th>Tipo</th>
-                                                <th>Valor</th>
                                                 <th>Status</th>
                                                 <th>Ações</th>
                                             </tr>
@@ -334,69 +663,222 @@ if (isset($_GET['action']) && $_GET['action'] === 'exportar') {
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
+                
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/insights.js"></script>
-    <script src="/js/script.js"></script>
+    <script src="/portal-repo-og/js/insights.js"></script>
+    <script src="/portal-repo-og/js/script.js"></script>
+
     <script>
-        function loadTemplate(templatePath, containerId) {
-            fetch(templatePath)
-                .then(r => r.text())
-                .then(html => {
-                    const container = document.getElementById(containerId);
-                    if (container) container.innerHTML = html;
-                })
-                .catch(err => console.error('Erro ao carregar template:', err));
+         function loadTemplate(templatePath, containerId) {
+        fetch(templatePath)
+            .then(r => r.text())
+            .then(html => {
+                const container = document.getElementById(containerId);
+                if (container) {
+                    container.innerHTML = html;
+                    setTimeout(ativarSidebarAtual, 100);
+                } else {
+                     console.error(`Elemento com ID '${containerId}' não encontrado no DOM.`);
+                }
+            })
+            .catch(err => console.error('Erro ao carregar template:', err));
+    }
+
+    function ativarSidebarAtual() {
+        const path = window.location.pathname;
+        let paginaAtual = null;
+
+        if (path.endsWith('/index.php') || path === '/' || path.includes('/portal-repo-og/') && !path.split('/').pop()) {
+            paginaAtual = 'inicio';
+        } else if (path.endsWith('/paciente.php')) {
+            paginaAtual = 'pacientes';
+        } else if (path.endsWith('/farmaceutico.php')) {
+            paginaAtual = 'farmaceuticos';
+        } else if (path.endsWith('/medicamento.php')) {
+            paginaAtual = 'medicamentos';
+        } else if (path.endsWith('/insights.php')) {
+            paginaAtual = 'relatorios';
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadTemplate('/templates/header.php', 'header-container');
-            loadTemplate('/templates/sidebar.php', 'sidebar-container');
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.classList.remove('active');
+        });
 
-            if (typeof initializeSidebar === 'function') initializeSidebar();
-            if (typeof initializeActionButtons === 'function') initializeActionButtons();
-            if (typeof initializeTooltips === 'function') initializeTooltips();
-            if (typeof initializeNavigation === 'function') initializeNavigation();
-            if (typeof setActiveSidebarLink === 'function') setActiveSidebarLink();
-
-            function loadInsights(periodo = '30') {
-                document.getElementById('loading-overlay')?.classList.remove('d-none');
-
-                fetch(`?action=load_insights&periodo=${periodo}`)
-                    .then(r => r.json())
-                    .then(data => {
-                        document.getElementById('receita-total').textContent = data.receita_total;
-                        document.getElementById('total-vendas').textContent = data.total_vendas;
-                        document.getElementById('novos-clientes').textContent = data.novos_clientes;
-                        document.getElementById('taxa-conversao').textContent = data.taxa_conversao;
-                        document.getElementById('receita-variacao').textContent = data.receita_variacao;
-                        document.getElementById('vendas-variacao').textContent = data.vendas_variacao;
-                        document.getElementById('clientes-variacao').textContent = data.clientes_variacao;
-                        document.getElementById('conversao-variacao').textContent = data.conversao_variacao;
-
-                        if (typeof initCharts === 'function') initCharts(periodo);
-                        if (typeof loadTables === 'function') loadTables(periodo);
-                    })
-                    .catch(err => console.error('Erro ao carregar insights:', err))
-                    .finally(() => {
-                        document.getElementById('loading-overlay')?.classList.add('d-none');
-                    });
+        if (paginaAtual) {
+            const linkAtivo = document.querySelector(`.sidebar-link[data-page="${paginaAtual}"]`);
+            if (linkAtivo) {
+                linkAtivo.classList.add('active');
             }
-            loadInsights();
-            document.getElementById('aplicar-filtros')?.addEventListener('click', function() {
-                const periodo = document.getElementById('periodo-select').value;
-                loadInsights(periodo);
-            });
-            document.getElementById('exportar-relatorio')?.addEventListener('click', function() {
-                window.location.href = '?action=exportar';
-            });
-            document.getElementById('refresh-vendas')?.addEventListener('click', function() {
-                loadInsights(document.getElementById('periodo-select').value);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadTemplate('/portal-repo-og/templates/header.php', 'header-container');
+        loadTemplate('/portal-repo-og/templates/sidebar.php', 'sidebar-container');
+
+        setTimeout(ativarSidebarAtual, 200);
+
+        function loadInsights(periodo = '30') {
+            document.getElementById('loading-overlay')?.classList.remove('d-none');
+
+            fetch(`?action=load_insights&periodo=${periodo}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Erro na rede: ${response.status} ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        console.error('Erro retornado pelo PHP:', data.error);
+                        mostrarNotificacao(`Erro: ${data.error}`, 'error');
+                        return;
+                    }
+
+                    document.getElementById('total-pacientes').textContent = data.total_pacientes_ativos;
+                    document.getElementById('total-atendimentos').textContent = data.total_atendimentos;
+                    document.getElementById('total-farmaceuticos').textContent = data.total_farmaceuticos_ativos;
+                    document.getElementById('total-medicamentos').textContent = data.total_medicamentos_ativos;
+                    document.getElementById('atendimentos-variacao').textContent = data.atendimentos_variacao;
+
+                    const variacaoElement = document.getElementById('atendimentos-variacao');
+                    const parent = variacaoElement.closest('small');
+                    if (parent) {
+                        parent.className = parent.className.replace(/text-(success|danger|secondary)/, '');
+                        const valorVariacao = parseFloat(data.atendimentos_variacao);
+                        if (valorVariacao > 0) {
+                            parent.classList.add('text-success');
+                            parent.querySelector('i').className = 'fas fa-arrow-up';
+                        } else if (valorVariacao < 0) {
+                            parent.classList.add('text-danger');
+                            parent.querySelector('i').className = 'fas fa-arrow-down';
+                        } else {
+                            parent.classList.add('text-secondary');
+                            parent.querySelector('i').className = 'fas fa-minus';
+                        }
+                    }
+
+                    if (typeof initCharts === 'function') initCharts(data);
+                    if (typeof loadTables === 'function') loadTables(data);
+                })
+                .catch(err => {
+                    console.error('Erro ao carregar insights:', err);
+                    mostrarNotificacao(`Erro ao carregar insights: ${err.message}`, 'error');
+                })
+                .finally(() => {
+                    document.getElementById('loading-overlay')?.classList.add('d-none');
+                });
+        }
+
+        loadInsights();
+
+        document.getElementById('aplicar-filtros')?.addEventListener('click', function() {
+            const periodo = document.getElementById('periodo-select').value;
+            loadInsights(periodo);
+        });
+
+        document.getElementById('exportar-relatorio')?.addEventListener('click', function() {
+            const periodo = document.getElementById('periodo-select').value;
+
+            Swal.fire({
+                title: 'Exportar Relatório',
+                text: 'Selecione o formato para exportação:',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#1a6d40',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'PDF',
+                cancelButtonText: 'CSV',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.open(`/portal-repo-og/utils/gerar_pdf_insights.php?periodo=${periodo}`, '_blank');
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    window.open(`/portal-repo-og/utils/gerar_csv_insights.php?periodo=${periodo}`, '_blank');
+                }
             });
         });
+
+        document.getElementById('refresh-vendas')?.addEventListener('click', function() {
+            loadInsights(document.getElementById('periodo-select').value);
+        });
+
+        document.getElementById('ver-relatorio-foda')?.addEventListener('click', function() {
+            window.open('/portal-repo-og/utils/relatorio_completo.php', '_blank');
+        });
+
+        document.getElementById('carregar-tratamentos-btn')?.addEventListener('click', function() {
+            carregarTratamentosContinuos();
+        });
+
+        document.getElementById('buscar-dispensacoes-btn')?.addEventListener('click', function() {
+            const filtros = {
+                data_inicio: document.getElementById('data-inicio').value,
+                data_fim: document.getElementById('data-fim').value,
+                tipo: document.getElementById('tipo-dispensacao').value,
+                paciente: document.getElementById('nome-paciente').value
+            };
+            buscarDispensacoes(filtros);
+        });
+
+        document.getElementById('limpar-dispensacoes-btn')?.addEventListener('click', function() {
+            document.getElementById('dispensacoes-table').querySelector('tbody').innerHTML = '';
+        });
+
+        document.getElementById('buscar-interacoes-btn')?.addEventListener('click', function() {
+            const idPaciente = document.getElementById('paciente-interacao-id').value;
+            if (idPaciente) {
+                buscarInteracoesPorPaciente(parseInt(idPaciente));
+            } else {
+                mostrarNotificacao('Por favor, insira um ID de paciente válido.', 'error');
+            }
+        });
+    });
+
+    function mostrarNotificacao(mensagem, tipo = 'info') {
+        console.log(`${tipo.toUpperCase()}: ${mensagem}`);
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${tipo === 'success' ? 'success' : tipo === 'error' ? 'danger' : 'info'} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            ${mensagem}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 3000);
+    }
+
+    function visualizarAtendimento(id) {
+        mostrarNotificacao(`Visualizando atendimento #${id}`, 'info');
+    }
+
+    function editarAtendimento(id) {
+        mostrarNotificacao(`Editando atendimento #${id}`, 'info');
+    }
+
+    function attachMenuToggle() {
+      const btn = document.getElementById('menu-toggle');
+      const sidebar = document.getElementById('sidebar');
+
+      if (btn && sidebar) {
+        btn.onclick = null;
+        btn.onclick = () => {
+          sidebar.classList.toggle('collapsed');
+        };
+      } else {
+        setTimeout(attachMenuToggle, 300);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      attachMenuToggle();
+    });
+
     </script>
 </body>
 </html>
