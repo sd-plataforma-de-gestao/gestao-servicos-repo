@@ -74,8 +74,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'listar_atendimentos') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Histórico de Atendimentos - Vitally</title>
     <link rel="icon" href="/portal-repo-og/assets/favicon.png" type="image/png">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css  " rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css  " />
     <link rel="stylesheet" href="../styles/global.css">
     <link rel="stylesheet" href="../styles/header.css">
     <link rel="stylesheet" href="../styles/sidebar.css">
@@ -146,7 +146,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'listar_atendimentos') {
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js  "></script>
     <script src="/portal-repo-og/js/script.js"></script>
     <script>
         async function loadTemplate(templatePath, containerId) {
@@ -155,6 +155,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'listar_atendimentos') {
                 if (!response.ok) throw new Error(`Erro ${response.status}`);
                 const html = await response.text();
                 document.getElementById(containerId).innerHTML = html;
+                
+                if (containerId === 'sidebar-container' && typeof setActiveSidebarLink === 'function') {
+                    setTimeout(() => setActiveSidebarLink(), 50);
+                }
             } catch (error) {
                 console.error(`Erro ao carregar ${templatePath}:`, error);
             }
@@ -196,7 +200,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'listar_atendimentos') {
                         </td>
                         <td>${p.farmaceutico_nome}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary" onclick="verDetalhes(${p.paciente_id})">
+                            <button class="badge" onclick="verDetalhes(${p.paciente_id})">
     <i class="fa fa-eye"></i> Ver
 </button>
                         </td>

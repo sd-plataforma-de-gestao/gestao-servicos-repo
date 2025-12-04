@@ -166,7 +166,7 @@ function initAtendimento() {
   });
 
   // API KEY DO GEMINI
-  const GEMINI_API_KEY = 'AIzaSyBRlDmktgFcVV65lXSpat9Y9x9q8wDHcGk';
+  const GEMINI_API_KEY = 'COLOQUE AQUI';
 
   async function callGeminiAPI(userMessage) {
     const thinkingElement = addMessage("Processando...", false);
@@ -179,7 +179,7 @@ function initAtendimento() {
       ...chatHistory.map(msg => ({
         role: msg.isUser ? "user" : "model",
         parts: [{ text: msg.text }]
-      })),    
+      })),
       { role: "user", parts: [{ text: userMessage }] }
     ];
 

@@ -131,7 +131,6 @@
                         });
                     }
 
-                    // Table resumo (últimos 10)
                     const rows = data.slice(-10).reverse().map(r => `<tr><td>${r.data}</td><td>${r.total_atendimentos}</td><td>${r.atendimentos_cronicos}</td><td>${r.atendimentos_agudos}</td><td>${r.taxa_adesao_media}%</td></tr>`).join('');
                     if (tableWrapper) tableWrapper.innerHTML = `<table class="table"><thead><tr><th>Data</th><th>Total</th><th>Crônicos</th><th>Agudos</th><th>Taxa Adesão</th></tr></thead><tbody>${rows}</tbody></table>`;
                     updateKPIs(total.slice(-1)[0] || '—', ades.slice(-1)[0] ? ades.slice(-1)[0] + '%' : '—');

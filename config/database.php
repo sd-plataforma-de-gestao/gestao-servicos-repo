@@ -1,8 +1,8 @@
 <?php
-$servername = "127.0.0.1";
-$username = "root";
+$servername = "XXX.Y.Z.Z";
+$username = "USERNAME AQUI";
 $password = "";
-$dbname = "farmacia";
+$dbname = "farmacia"; // Deixar este o nome, caso altere aqui tem que alterar no codigo do banco "USE".
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 

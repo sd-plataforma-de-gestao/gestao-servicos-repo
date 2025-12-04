@@ -214,15 +214,14 @@ try {
     fputcsv($output, ['Farmacêuticos Ativos', $total_farmaceuticos_ativos], ';');
     fputcsv($output, ['Medicamentos Ativos', $total_medicamentos_ativos], ';');
     fputcsv($output, ['Variação Atendimentos', number_format($atendimentos_variacao, 2, ',', '.') . '%'], ';');
-    fputcsv($output, [''], ';');
+    fputcsv($output, [''], ';'); 
 
     fputcsv($output, ['Atendimentos por Tipo'], ';');
     fputcsv($output, ['Tipo', 'Quantidade'], ';');
     foreach ($atendimentos_por_tipo as $item) {
         fputcsv($output, [$item['tipo'], $item['quantidade']], ';');
     }
-    fputcsv($output, [''], ';');
-
+    fputcsv($output, [''], ';'); 
     fputcsv($output, ['Top 5 Pacientes'], ';');
     fputcsv($output, ['Paciente', 'Atendimentos'], ';');
     foreach ($top_pacientes as $item) {

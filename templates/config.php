@@ -23,9 +23,9 @@ $geminiApiKey = '';
   <title>Configurações do Sistema</title>
   <link rel="icon" href="/portal-repo-og/assets/favicon.png" type="image/png">
   
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css  " rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css  " />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11  "></script>
 
   <link rel="stylesheet" href="/portal-repo-og/styles/global.css">
   <link rel="stylesheet" href="/portal-repo-og/styles/header.css">
@@ -91,7 +91,7 @@ $geminiApiKey = '';
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js  "></script>
   <script src="/portal-repo-og/js/script.js"></script>
   <script src="/portal-repo-og/js/sidebar.js"></script>
   <script>
@@ -107,6 +107,10 @@ $geminiApiKey = '';
           .replace(/href="(?!https?:|\/)([^"]+)"/g, `href="${basePath}/$1"`);
 
         document.getElementById(containerId).innerHTML = html;
+        
+        if (containerId === 'sidebar-container' && typeof setActiveSidebarLink === 'function') {
+          setTimeout(() => setActiveSidebarLink(), 50);
+        }
       } catch (error) {
         console.error(`Erro ao carregar ${templatePath}:`, error);
       }

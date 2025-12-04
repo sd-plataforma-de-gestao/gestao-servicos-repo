@@ -11,6 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($crf) || empty($senha)) {
         $message = 'CRF e senha são obrigatórios.';
     } else {
+        // Busca farmacêutico ativo pelo CRF
         $stmt = $conn->prepare("SELECT id, nome, crf, senha FROM farmaceuticos WHERE crf = ? AND status = 'ativo'");
         $stmt->bind_param("s", $crf);
         $stmt->execute();
@@ -18,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($row = $result->fetch_assoc()) {
             if (password_verify($senha, $row['senha'])) {
+                // Login bem-sucedido
                 $_SESSION['farmaceutico_id'] = $row['id'];
                 $_SESSION['farmaceutico_nome'] = $row['nome'];
                 $_SESSION['farmaceutico_crf'] = $row['crf'];

@@ -28,7 +28,7 @@ function criarGraficoAtendimentosPorTipo(dados) {
 
     chartsInstances.categorias = new Chart(ctx, {
         type: 'doughnut',
-        data: { 
+        data: {
             labels: labels,
             datasets: [{
                 data: valores,
@@ -75,7 +75,7 @@ function criarGraficoAtendimentosPorPeriodo(dados) {
 
     chartsInstances.vendas = new Chart(ctx, {
         type: 'line',
-        data: { 
+        data: {
             labels: dados.labels,
             datasets: [{
                 label: 'Atendimentos',
@@ -275,41 +275,76 @@ function exibirInteracoes(dados) {
     alert(`Possíveis interações encontradas: ${dados.length}`);
 }
 
-document.querySelectorAll('[data-chart-type="vendas"]').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('[data-chart-type="vendas"]').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        currentPeriod = this.dataset.period;
-    });
+
+function aplicarFiltros() {
+    const periodo = document.getElementById('periodo-select').value;
+    const dataInicio = document.getElementById('data-inicio').value;
+    const dataFim = document.getElementById('data-fim').value;
+    
+    if (dataInicio && dataFim && new Date(dataInicio) > new Date(dataFim)) {
+        mostrarNotificacao('A data de início não pode ser maior que a data de fim.', 'error');
+        return;
+    }
+
+    document.getElementById('loading-overlay')?.classList.remove('d-none');
+
+    let url = `?action=load_insights&periodo=${periodo}`;
+    if (dataInicio) url += `&data_inicio=${dataInicio}`;
+    if (dataFim) url += `&data_fim=${dataFim}`;
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Erro na rede: ${response.status} ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                console.error('Erro retornado pelo PHP:', data.error);
+                mostrarNotificacao(`Erro: ${data.error}`, 'error');
+                return;
+            }
+
+            document.getElementById('total-pacientes').textContent = data.total_pacientes_ativos;
+            document.getElementById('total-atendimentos').textContent = data.total_atendimentos;
+            document.getElementById('total-farmaceuticos').textContent = data.total_farmaceuticos_ativos;
+            document.getElementById('total-medicamentos').textContent = data.total_medicamentos_ativos;
+            document.getElementById('atendimentos-variacao').textContent = data.atendimentos_variacao;
+
+            initCharts(data);
+            loadTables(data);
+            carregarTratamentosContinuos();
+
+            document.getElementById('loading-overlay')?.classList.add('d-none');
+            mostrarNotificacao('Insights atualizados com sucesso!', 'success');
+        })
+        .catch(error => {
+            console.error('Erro ao carregar insights:', error);
+            mostrarNotificacao(`Erro ao carregar insights: ${error.message}`, 'error');
+            document.getElementById('loading-overlay')?.classList.add('d-none');
+        });
+}
+
+function loadInsights() {
+    console.log('Função loadInsights chamada. Aplicando filtros padrão...');
+    aplicarFiltros();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('aplicar-filtro-btn')?.addEventListener('click', aplicarFiltros);
+
+    loadInsights();
 });
 
-if (typeof mostrarNotificacao === 'undefined') {
-    function mostrarNotificacao(mensagem, tipo = 'info') {
-        console.log(`${tipo.toUpperCase()}: ${mensagem}`);
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${tipo === 'success' ? 'success' : tipo === 'error' ? 'danger' : 'info'} alert-dismissible fade show position-fixed`;
-        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-        alertDiv.innerHTML = `
-            ${mensagem}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        document.body.appendChild(alertDiv);
-        setTimeout(() => {
-            if (alertDiv.parentNode) {
-                alertDiv.remove();
-            }
-        }, 3000);
-    }
+function mostrarNotificacao(mensagem, tipo) {
+    console.log(`Notificação (${tipo}): ${mensagem}`);
 }
 
-if (typeof visualizarAtendimento === 'undefined') {
-    function visualizarAtendimento(id) {
-        mostrarNotificacao(`Visualizando atendimento #${id}`, 'info');
-    }
+function visualizarAtendimento(id) {
+    console.log(`Visualizar atendimento ID: ${id}`);
 }
 
-if (typeof editarAtendimento === 'undefined') {
-    function editarAtendimento(id) {
-        mostrarNotificacao(`Editando atendimento #${id}`, 'info');
-    }
+function editarAtendimento(id) {
+    console.log(`Editar atendimento ID: ${id}`);
 }

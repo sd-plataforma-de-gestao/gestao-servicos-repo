@@ -233,8 +233,17 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_interacoes_paciente') {
 
 if (isset($_GET['action']) && $_GET['action'] === 'load_insights') {
     $periodo = $_GET['periodo'] ?? '30';
-    $data_inicio = getDataInicio($periodo);
-    list($data_inicio_anterior, $data_fim_anterior) = getDataInicioAnterior($periodo);
+    $filtro_data_inicio = $_GET['data_inicio'] ?? null;
+    $filtro_data_fim = $_GET['data_fim'] ?? null;
+
+    if ($filtro_data_inicio && $filtro_data_fim) {
+        $data_inicio = $filtro_data_inicio . ' 00:00:00';
+        $data_inicio_anterior = null;
+        $data_fim_anterior = null;
+    } else {
+        $data_inicio = getDataInicio($periodo);
+        list($data_inicio_anterior, $data_fim_anterior) = getDataInicioAnterior($periodo);
+    }
 
     try {
         $sql_pacientes_ativos = "SELECT COUNT(*) AS total FROM pacientes WHERE status = 'ativo'";
@@ -244,17 +253,32 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_insights') {
         }
         $total_pacientes_ativos = $result_pacientes_ativos->fetch_assoc()['total'];
 
+        $where_atendimentos = "WHERE status_atendimento = 'Concluído'";
+        $params_atual = [];
+        $types_atual = '';
+        if ($filtro_data_inicio && $filtro_data_fim) {
+            $where_atendimentos .= " AND criado_em BETWEEN ? AND ?";
+            $params_atual[] = $filtro_data_inicio . ' 00:00:00';
+            $params_atual[] = $filtro_data_fim . ' 23:59:59';
+            $types_atual = 'ss';
+        } else {
+            $where_atendimentos .= " AND criado_em BETWEEN ? AND NOW()";
+            $params_atual[] = $data_inicio;
+            $types_atual = 's';
+        }
+
         $sql_atendimentos_atual = "
             SELECT COUNT(*) AS total_atendimentos
             FROM atendimentos
-            WHERE status_atendimento = 'Concluído'
-            AND criado_em BETWEEN ? AND NOW()
+            $where_atendimentos
         ";
         $stmt_atendimentos_atual = $conn->prepare($sql_atendimentos_atual);
         if (!$stmt_atendimentos_atual) {
             throw new Exception("Erro na preparação da consulta de atendimentos (atual): " . $conn->error);
         }
-        $stmt_atendimentos_atual->bind_param("s", $data_inicio);
+        if (!empty($params_atual)) {
+            $stmt_atendimentos_atual->bind_param($types_atual, ...$params_atual);
+        }
         $stmt_atendimentos_atual->execute();
         $result_atendimentos_atual = $stmt_atendimentos_atual->get_result();
         $total_atendimentos_atual = $result_atendimentos_atual->fetch_assoc()['total_atendimentos'];
@@ -274,21 +298,24 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_insights') {
         }
         $total_medicamentos_ativos = $result_medicamentos_ativos->fetch_assoc()['total'];
 
-        $sql_atendimentos_anterior = "
-            SELECT COUNT(*) AS total_atendimentos
-            FROM atendimentos
-            WHERE status_atendimento = 'Concluído'
-            AND criado_em BETWEEN ? AND ?
-        ";
-        $stmt_atendimentos_anterior = $conn->prepare($sql_atendimentos_anterior);
-        if (!$stmt_atendimentos_anterior) {
-            throw new Exception("Erro na preparação da consulta de atendimentos (anterior): " . $conn->error);
+        $total_atendimentos_anterior = 0;
+        if ($data_inicio_anterior && $data_fim_anterior) {
+            $sql_atendimentos_anterior = "
+                SELECT COUNT(*) AS total_atendimentos
+                FROM atendimentos
+                WHERE status_atendimento = 'Concluído'
+                AND criado_em BETWEEN ? AND ?
+            ";
+            $stmt_atendimentos_anterior = $conn->prepare($sql_atendimentos_anterior);
+            if (!$stmt_atendimentos_anterior) {
+                throw new Exception("Erro na preparação da consulta de atendimentos (anterior): " . $conn->error);
+            }
+            $stmt_atendimentos_anterior->bind_param("ss", $data_inicio_anterior, $data_fim_anterior);
+            $stmt_atendimentos_anterior->execute();
+            $result_atendimentos_anterior = $stmt_atendimentos_anterior->get_result();
+            $total_atendimentos_anterior = $result_atendimentos_anterior->fetch_assoc()['total_atendimentos'];
+            $stmt_atendimentos_anterior->close();
         }
-        $stmt_atendimentos_anterior->bind_param("ss", $data_inicio_anterior, $data_fim_anterior);
-        $stmt_atendimentos_anterior->execute();
-        $result_atendimentos_anterior = $stmt_atendimentos_anterior->get_result();
-        $total_atendimentos_anterior = $result_atendimentos_anterior->fetch_assoc()['total_atendimentos'];
-        $stmt_atendimentos_anterior->close();
 
         $atendimentos_variacao = 0;
         if ($total_atendimentos_anterior != 0) {
@@ -305,18 +332,33 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_insights') {
             'atendimentos_variacao' => ($atendimentos_variacao >= 0 ? '+' : '') . number_format($atendimentos_variacao, 2, ',', '.') . '%',
         ];
 
+        $where_tipo = "WHERE status_atendimento = 'Concluído'";
+        $params_tipo = [];
+        $types_tipo = '';
+        if ($filtro_data_inicio && $filtro_data_fim) {
+            $where_tipo .= " AND criado_em BETWEEN ? AND ?";
+            $params_tipo[] = $filtro_data_inicio . ' 00:00:00';
+            $params_tipo[] = $filtro_data_fim . ' 23:59:59';
+            $types_tipo = 'ss';
+        } else {
+            $where_tipo .= " AND criado_em BETWEEN ? AND NOW()";
+            $params_tipo[] = $data_inicio;
+            $types_tipo = 's';
+        }
+
         $sql_tipo = "
             SELECT tipo_atendimento, COUNT(*) as quantidade
             FROM atendimentos
-            WHERE status_atendimento = 'Concluído'
-            AND criado_em BETWEEN ? AND NOW()
+            $where_tipo
             GROUP BY tipo_atendimento
         ";
         $stmt_tipo = $conn->prepare($sql_tipo);
         if (!$stmt_tipo) {
             throw new Exception("Erro na preparação da consulta de tipos de atendimento: " . $conn->error);
         }
-        $stmt_tipo->bind_param("s", $data_inicio);
+        if (!empty($params_tipo)) {
+            $stmt_tipo->bind_param($types_tipo, ...$params_tipo);
+        }
         $stmt_tipo->execute();
         $result_tipo = $stmt_tipo->get_result();
         $atendimentos_por_tipo = [];
@@ -329,13 +371,25 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_insights') {
         $stmt_tipo->close();
         $data['atendimentos_por_tipo'] = $atendimentos_por_tipo;
 
+        $where_top = "WHERE a.status_atendimento = 'Concluído' AND p.status = 'ativo'";
+        $params_top = [];
+        $types_top = '';
+        if ($filtro_data_inicio && $filtro_data_fim) {
+            $where_top .= " AND a.criado_em BETWEEN ? AND ?";
+            $params_top[] = $filtro_data_inicio . ' 00:00:00';
+            $params_top[] = $filtro_data_fim . ' 23:59:59';
+            $types_top = 'ss';
+        } else {
+            $where_top .= " AND a.criado_em BETWEEN ? AND NOW()";
+            $params_top[] = $data_inicio;
+            $types_top = 's';
+        }
+
         $sql_top_pacientes = "
             SELECT p.nome, COUNT(a.id) as atendimentos
             FROM pacientes p
             JOIN atendimentos a ON p.id = a.paciente_id
-            WHERE a.status_atendimento = 'Concluído'
-            AND a.criado_em BETWEEN ? AND NOW()
-            AND p.status = 'ativo'
+            $where_top
             GROUP BY p.id, p.nome
             ORDER BY atendimentos DESC
             LIMIT 5
@@ -344,7 +398,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_insights') {
         if (!$stmt_top_pacientes) {
             throw new Exception("Erro na preparação da consulta de top pacientes: " . $conn->error);
         }
-        $stmt_top_pacientes->bind_param("s", $data_inicio);
+        if (!empty($params_top)) {
+            $stmt_top_pacientes->bind_param($types_top, ...$params_top);
+        }
         $stmt_top_pacientes->execute();
         $result_top_pacientes = $stmt_top_pacientes->get_result();
         $top_pacientes = [];
@@ -404,38 +460,32 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_recent_atendimentos') {
             LIMIT 10
         ";
         $result_recentes = $conn->query($sql_recentes);
-        if (!$result_recentes) {
-            throw new Exception("Erro na consulta de atendimentos recentes: " . $conn->error);
-        }
-        $atendimentos_recentes = [];
+        if (!$result_recentes) throw new Exception("Erro na consulta de atendimentos recentes: " . $conn->error);
+
+        $data = [];
         while ($row = $result_recentes->fetch_assoc()) {
-            $atendimentos_recentes[] = $row;
+            $data[] = $row;
         }
         header('Content-Type: application/json');
-        echo json_encode($atendimentos_recentes);
+        echo json_encode($data);
     } catch (Exception $e) {
         header('Content-Type: application/json');
         http_response_code(500);
-        echo json_encode(['error' => 'Erro ao carregar atendimentos recentes: ' . $e->getMessage()]);
-        exit;
+        echo json_encode(['error' => $e->getMessage()]);
     }
     exit;
 }
-
 ?>
-
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatórios e Insights</title>
-
+    <title>Relatórios e Insights - Portal Farmacêutico</title>
+    <link rel="icon" href="/portal-repo-og/assets/favicon.png" type="image/png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="/portal-repo-og/assets/favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="/portal-repo-og/styles/global.css">
     <link rel="stylesheet" href="/portal-repo-og/styles/header.css">
@@ -492,10 +542,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_recent_atendimentos') {
                         <button class="btn btn-outline-success ms-2" id="exportar-relatorio">
                             <i class="fas fa-download me-1"></i> Exportar
                         </button>
-                        <!-- <button class="btn btn-outline-success ms-2" id="ver-relatorio-foda">
-                            <i class="fas fa-chart-line me-1"></i> Relatório
-                        </button>
-                        <!-->
                     </div>
                 </div>
             </div>
@@ -604,7 +650,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_recent_atendimentos') {
                     </div>
                 </div>
             </div>
-
+ 
             <div class="tables-section">
                 <div class="row">
                     <div class="col-12">
@@ -639,7 +685,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_recent_atendimentos') {
                                     <button class="btn btn-sm btn-outline-secondary me-2" id="refresh-vendas">
                                         <i class="fas fa-sync-alt"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-outline-primary" id="ver-todas-vendas">Ver Todos</button>
                                 </div>
                             </div>
                             <div class="card-body p-0">
@@ -652,7 +697,32 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_recent_atendimentos') {
                                                 <th>Paciente</th>
                                                 <th>Tipo</th>
                                                 <th>Status</th>
-                                                <th>Ações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Pacientes em Tratamentos Contínuos (Top 20)</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0" id="tratamentos-table">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Paciente</th>
+                                                <th>Medicamento</th>
+                                                <th>Início do Tratamento</th>
+                                                <th>Total de Dispensações</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -664,8 +734,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_recent_atendimentos') {
                     </div>
                 </div>
 
-                
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js  "></script>
     <script src="/portal-repo-og/js/insights.js"></script>
     <script src="/portal-repo-og/js/script.js"></script>
 
@@ -719,63 +792,26 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_recent_atendimentos') {
 
         setTimeout(ativarSidebarAtual, 200);
 
-        function loadInsights(periodo = '30') {
-            document.getElementById('loading-overlay')?.classList.remove('d-none');
-
-            fetch(`?action=load_insights&periodo=${periodo}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Erro na rede: ${response.status} ${response.statusText}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.error) {
-                        console.error('Erro retornado pelo PHP:', data.error);
-                        mostrarNotificacao(`Erro: ${data.error}`, 'error');
-                        return;
-                    }
-
-                    document.getElementById('total-pacientes').textContent = data.total_pacientes_ativos;
-                    document.getElementById('total-atendimentos').textContent = data.total_atendimentos;
-                    document.getElementById('total-farmaceuticos').textContent = data.total_farmaceuticos_ativos;
-                    document.getElementById('total-medicamentos').textContent = data.total_medicamentos_ativos;
-                    document.getElementById('atendimentos-variacao').textContent = data.atendimentos_variacao;
-
-                    const variacaoElement = document.getElementById('atendimentos-variacao');
-                    const parent = variacaoElement.closest('small');
-                    if (parent) {
-                        parent.className = parent.className.replace(/text-(success|danger|secondary)/, '');
-                        const valorVariacao = parseFloat(data.atendimentos_variacao);
-                        if (valorVariacao > 0) {
-                            parent.classList.add('text-success');
-                            parent.querySelector('i').className = 'fas fa-arrow-up';
-                        } else if (valorVariacao < 0) {
-                            parent.classList.add('text-danger');
-                            parent.querySelector('i').className = 'fas fa-arrow-down';
-                        } else {
-                            parent.classList.add('text-secondary');
-                            parent.querySelector('i').className = 'fas fa-minus';
-                        }
-                    }
-
-                    if (typeof initCharts === 'function') initCharts(data);
-                    if (typeof loadTables === 'function') loadTables(data);
-                })
-                .catch(err => {
-                    console.error('Erro ao carregar insights:', err);
-                    mostrarNotificacao(`Erro ao carregar insights: ${err.message}`, 'error');
-                })
-                .finally(() => {
-                    document.getElementById('loading-overlay')?.classList.add('d-none');
-                });
+        if (typeof loadInsights === 'function') {
+            loadInsights();
+        } else {
+            console.error('Função loadInsights não encontrada no insights.js');
         }
 
-        loadInsights();
-
         document.getElementById('aplicar-filtros')?.addEventListener('click', function() {
-            const periodo = document.getElementById('periodo-select').value;
-            loadInsights(periodo);
+            if (typeof aplicarFiltros === 'function') {
+                aplicarFiltros();
+            } else {
+                console.error('Função aplicarFiltros não encontrada no insights.js');
+            }
+        });
+
+        document.getElementById('limpar-filtros')?.addEventListener('click', function() {
+            if (typeof limparFiltros === 'function') {
+                limparFiltros();
+            } else {
+                console.error('Função limparFiltros não encontrada no insights.js');
+            }
         });
 
         document.getElementById('exportar-relatorio')?.addEventListener('click', function() {
@@ -801,7 +837,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_recent_atendimentos') {
         });
 
         document.getElementById('refresh-vendas')?.addEventListener('click', function() {
-            loadInsights(document.getElementById('periodo-select').value);
+             if (typeof loadInsights === 'function') {
+                loadInsights(document.getElementById('periodo-select').value);
+            } else {
+                console.error('Função loadInsights não encontrada no insights.js');
+            }
         });
 
         document.getElementById('ver-relatorio-foda')?.addEventListener('click', function() {
@@ -851,14 +891,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_recent_atendimentos') {
                 alertDiv.remove();
             }
         }, 3000);
-    }
-
-    function visualizarAtendimento(id) {
-        mostrarNotificacao(`Visualizando atendimento #${id}`, 'info');
-    }
-
-    function editarAtendimento(id) {
-        mostrarNotificacao(`Editando atendimento #${id}`, 'info');
     }
 
     function attachMenuToggle() {

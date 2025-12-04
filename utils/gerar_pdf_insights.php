@@ -199,8 +199,8 @@ try {
         $atendimentos_recentes[] = $row;
     }
 
-    $logo_principal_url = '/portal-repo-og/assets/logo-header.png';
-    $logo_rodape_url = '/portal-repo-og/assets/favicon.png';
+    $logo_principal_url = '/portal-repo-og/assets/logo-header.png'; // Exemplo
+    $logo_rodape_url = '/portal-repo-og/assets/favicon.png'; // Exemplo
 
     $html = '
     <html>
@@ -315,9 +315,11 @@ try {
         </style>
         <script>
             window.onload = function() {
+                // Espera um pouco para garantir que o conteúdo esteja carregado
                 setTimeout(function() {
                     window.print();
-                }, 1000);
+                    // setTimeout(function() { window.close(); }, 1000); // Opcional: fecha após impressão
+                }, 1000); // Ajuste o tempo se necessário
             };
         </script>
     </head>
@@ -386,7 +388,23 @@ try {
                 <span>Vitally - ' . date('Y') . '</span>
                 <!-- Número de página: Pode ser complexo com CSS apenas para impressão, mas tentaremos uma abordagem -->
                 <script>
-                    document.addEventListener("DOMContentLoaded", function() {});
+                    // Esta parte roda no navegador antes da impressão
+                    // Adiciona o número da página no rodapé
+                    // Nota: Isso pode não funcionar exatamente como em um PDF gerado por biblioteca,
+                    // mas tenta simular o comportamento.
+                    document.addEventListener("DOMContentLoaded", function() {
+                         // O número da página real é gerado pelo navegador de impressão.
+                         // Uma simulação simples é adicionar um texto estático ou usar uma biblioteca mais robusta.
+                         // Vamos adicionar um placeholder que pode ser substituído por um script mais complexo se necessário.
+                         // Por enquanto, vamos manter o layout e o conteúdo principal como está.
+                         // O navegador de impressão geralmente adiciona "Página X de Y" automaticamente,
+                         // mas não no rodapé personalizado. Isso é uma limitação do HTML/CSS para impressão.
+                         // Se o número de páginas for crítico, uma biblioteca PHP (como DomPDF) é mais apropriada.
+                         // Para este exemplo, vamos remover o placeholder e confiar no navegador.
+                         // Se quiser um número de página personalizado, é possível com JS e @page,
+                         // mas é mais complexo e nem sempre confiável em todos os navegadores.
+                         // Vamos manter o layout simples por enquanto.
+                    });
                 </script>
             </div>
         </div>

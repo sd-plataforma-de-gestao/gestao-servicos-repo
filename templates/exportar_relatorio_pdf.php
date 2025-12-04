@@ -1,6 +1,6 @@
 <?php
 require_once '../../vendor/autoload.php';
-include("../../config/database.php")
+include("../../config/database.php");
 
 session_start();
 if (!isset($_SESSION['farmaceutico_id'])) {
@@ -35,6 +35,7 @@ function construirWhereData($params) {
     }
     return $where;
 }
+
 function buscarDadosRelatorio($acao, $params = []) {
     global $conn;
     try {
@@ -73,7 +74,7 @@ function buscarDadosRelatorio($acao, $params = []) {
                 }
                 return $data;
 
-            case 'estoque_critico':
+                case 'estoque_critico':
                 $threshold = isset($params['threshold']) ? (int)$params['threshold'] : 5;
                 $sql = "SELECT id, nome, quantidade, data_validade FROM medicamentos WHERE quantidade <= {$threshold} ORDER BY quantidade ASC";
                 $result = $conn->query($sql);
@@ -97,6 +98,7 @@ function buscarDadosRelatorio($acao, $params = []) {
         return ['error' => $e->getMessage()];
     }
 }
+
 
 $type = $_GET['type'] ?? '';
 $periodo = $_GET['periodo'] ?? '30';
@@ -152,6 +154,7 @@ $logo_rodape_url = $_SERVER['DOCUMENT_ROOT'] . '/portal-repo-og/assets/favicon.p
 
 if (!file_exists($logo_principal_url)) {
     $logo_principal_url = '';
+}
 if (!file_exists($logo_rodape_url)) {
     $logo_rodape_url = '';
 }
@@ -306,8 +309,7 @@ if (!empty($data)) {
                 $html .= '<tr><td>' . htmlspecialchars($item['medicamento_nome']) . '</td><td>' . number_format($item['receita'], 2, ',', '.') . '</td></tr>';
             }
             break;
-
-            default:
+        default:
             $html .= '<tr><td colspan="100%">Tipo de relatório não suportado para exportação em tabela.</td></tr>';
     }
 

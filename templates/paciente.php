@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 if (!isset($_SESSION['farmaceutico_id'])) {
@@ -6,7 +5,6 @@ if (!isset($_SESSION['farmaceutico_id'])) {
     exit;
 }
 include(__DIR__ . '/../config/database.php');
-
 function getTipoBadgeClass($tipo)
 {
     switch (strtolower($tipo)) {
@@ -18,7 +16,6 @@ function getTipoBadgeClass($tipo)
             return 'tipo-padrao';
     }
 }
-
 function getStatusBadgeClass($status)
 {
     switch (strtolower($status)) {
@@ -34,49 +31,41 @@ function getStatusBadgeClass($status)
             return 'status-padrao';
     }
 }
-
 function limparCPF($cpf)
 {
     return preg_replace('/[^0-9]/', '', $cpf);
 }
-
 function validarCPF($cpf)
 {
     $cpf = limparCPF($cpf);
     if (strlen($cpf) != 11) return false;
     if (preg_match('/^(\d)\1+$/', $cpf)) return false;
-
     $soma = 0;
     for ($i = 0; $i < 9; $i++) {
         $soma += ((10 - $i) * (int)$cpf[$i]);
     }
     $digito1 = 11 - ($soma % 11);
     if ($digito1 > 9) $digito1 = 0;
-
     $soma = 0;
     for ($i = 0; $i < 10; $i++) {
         $soma += ((11 - $i) * (int)$cpf[$i]);
     }
     $digito2 = 11 - ($soma % 11);
     if ($digito2 > 9) $digito2 = 0;
-
     return ($digito1 == (int)$cpf[9] && $digito2 == (int)$cpf[10]);
 }
-
 function formatarCPF($cpf)
 {
     $cpf = limparCPF($cpf);
     if (strlen($cpf) != 11) return $cpf;
     return preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $cpf);
 }
-
 if (isset($_GET['action']) && $_GET['action'] === 'get' && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
     $stmt = $conn->prepare("SELECT id, nome, dtnascimento, email, cpf, telefone, tipo_paciente, status FROM pacientes WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $result = $stmt->get_result();
-
     if ($result && $result->num_rows === 1) {
         $paciente = $result->fetch_assoc();
         header('Content-Type: application/json');
@@ -88,10 +77,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'get' && isset($_GET['id'])) {
     $stmt->close();
     exit;
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'edit') {
     $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-
     $id = (int)($_POST['id'] ?? 0);
     $nome = trim($_POST['nome'] ?? '');
     $dtnascimento = $_POST['dtnascimento'] ?? '';
@@ -100,7 +87,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $telefone = $_POST['telefone'] ?? '';
     $tipo_paciente = $_POST['tipo_paciente'] ?? 'agudo';
     $status = $_POST['status'] ?? 'ativo';
-
     if ($id <= 0 || empty($nome) || empty($dtnascimento) || empty($email)) {
         if ($isAjax) {
             echo "error: ID inválido ou campos obrigatórios não preenchidos.";
@@ -109,7 +95,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
         exit;
     }
-
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         if ($isAjax) {
             echo "error: E-mail inválido.";
@@ -118,7 +103,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
         exit;
     }
-
     $cpfParaSalvar = null;
     if (!empty($cpf)) {
         $cpfLimpo = limparCPF($cpf);
@@ -132,7 +116,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
         $cpfParaSalvar = $cpfLimpo;
     }
-
     $stmt = $conn->prepare("UPDATE pacientes SET nome=?, dtnascimento=?, email=?, cpf=?, telefone=?, tipo_paciente=?, status=? WHERE id=?");
     if (!$stmt) {
         if ($isAjax) {
@@ -142,9 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
         exit;
     }
-
     $stmt->bind_param("sssssssi", $nome, $dtnascimento, $email, $cpfParaSalvar, $telefone, $tipo_paciente, $status, $id);
-
     if ($stmt->execute()) {
         if ($isAjax) {
             echo "success_edit";
@@ -158,22 +139,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             header("Location: paciente.php?error=Erro ao atualizar paciente.");
         }
     }
-
     $stmt->close();
     exit;
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete' && isset($_POST['id'])) {
     $id = (int)$_POST['id'];
-
     if ($id <= 0) {
         echo "error: ID inválido.";
         exit;
     }
-
     $stmt = $conn->prepare("DELETE FROM pacientes WHERE id = ?");
     $stmt->bind_param("i", $id);
-
     if ($stmt->execute()) {
         if ($stmt->affected_rows > 0) {
             echo "success_delete";
@@ -183,16 +159,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     } else {
         echo "error: " . $stmt->error;
     }
-
     $stmt->close();
     exit;
 }
-
 if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     $whereConditions = [];
     $params = [];
     $types = '';
-
     if (!empty($_GET['search'])) {
         $searchTerm = '%' . trim($_GET['search']) . '%';
         $whereConditions[] = "(nome LIKE ? OR cpf LIKE ? OR telefone LIKE ?)";
@@ -201,42 +174,34 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
         $params[] = $searchTerm;
         $types .= 'sss';
     }
-
     if (!empty($_GET['tipo_paciente']) && in_array($_GET['tipo_paciente'], ['agudo', 'cronico'])) {
         $whereConditions[] = "tipo_paciente = ?";
         $params[] = $_GET['tipo_paciente'];
         $types .= 's';
     }
-
     $sql = "SELECT id, nome, dtnascimento, email, cpf, telefone, tipo_paciente, status FROM pacientes";
     if (!empty($whereConditions)) {
         $sql .= " WHERE " . implode(" AND ", $whereConditions);
     }
     $sql .= " ORDER BY nome ASC";
-
     $stmt = $conn->prepare($sql);
     if (!$stmt) {
         echo '<p class="text-danger">Erro interno ao preparar a consulta.</p>';
         exit;
     }
-
     if (!empty($params)) {
         $stmt->bind_param($types, ...$params);
     }
-
     $stmt->execute();
     $result = $stmt->get_result();
-
     if ($result && $result->num_rows > 0) {
         echo '<table class="table table-striped table-hover mt-3"><thead class="table-light"><tr><th>Nome</th><th>Data de Nascimento</th><th>E-mail</th><th>CPF</th><th>Telefone</th><th>Tipo</th><th>Status</th><th class="th-acoes">Ações</th></tr></thead><tbody>';
         while ($row = $result->fetch_assoc()) {
             $dtnascimentoExibicao = (!empty($row['dtnascimento']) && $row['dtnascimento'] !== '0000-00-00')
                 ? date('d/m/Y', strtotime($row['dtnascimento']))
                 : '-';
-
             $tipoBadgeClass = getTipoBadgeClass($row['tipo_paciente']);
             $statusBadgeClass = getStatusBadgeClass($row['status']);
-
             echo '<tr>';
             echo '<td>' . htmlspecialchars($row['nome'], ENT_QUOTES, 'UTF-8') . '</td>';
             echo '<td>' . htmlspecialchars($dtnascimentoExibicao, ENT_QUOTES, 'UTF-8') . '</td>';
@@ -262,14 +227,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     } else {
         echo '<p class="text-muted mt-3">Nenhum paciente encontrado.</p>';
     }
-
     $stmt->close();
     exit;
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
     $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-
     $nome = trim($_POST['nome'] ?? '');
     $dtnascimento = $_POST['dtnascimento'] ?? '';
     $email = $_POST['email'] ?? '';
@@ -277,7 +239,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
     $telefone = $_POST['telefone'] ?? '';
     $tipo_paciente = $_POST['tipo_paciente'] ?? 'agudo';
     $status = $_POST['status'] ?? 'ativo';
-
     if (empty($nome) || empty($dtnascimento) || empty($email)) {
         if ($isAjax) {
             echo "error: Campos obrigatórios (nome, data de nascimento e e-mail) não preenchidos.";
@@ -286,7 +247,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
         }
         exit;
     }
-
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         if ($isAjax) {
             echo "error: E-mail inválido.";
@@ -295,7 +255,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
         }
         exit;
     }
-
     $cpfParaSalvar = null;
     if (!empty($cpf)) {
         $cpfLimpo = limparCPF($cpf);
@@ -309,7 +268,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
         }
         $cpfParaSalvar = $cpfLimpo;
     }
-
     $stmt = $conn->prepare("INSERT INTO pacientes (nome, dtnascimento, email, cpf, telefone, tipo_paciente, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
     if (!$stmt) {
         if ($isAjax) {
@@ -319,9 +277,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
         }
         exit;
     }
-
     $stmt->bind_param("sssssss", $nome, $dtnascimento, $email, $cpfParaSalvar, $telefone, $tipo_paciente, $status);
-
     if ($stmt->execute()) {
         if ($isAjax) {
             echo "success";
@@ -335,15 +291,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
             header("Location: paciente.php?error=Erro ao salvar paciente.");
         }
     }
-
     $stmt->close();
     exit;
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -359,7 +312,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
     <link rel="stylesheet" href="/portal-repo-og/styles/responsive.css">
     <link rel="stylesheet" href="/portal-repo-og/styles/paciente.css">
 </head>
-
 <body>
     <div id="header-container"></div>
     <div id="main-content-wrapper">
@@ -369,7 +321,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                 <h2 class="page-title">Pacientes</h2>
                 <p class="page-subtitle">Gestão completa de pacientes e prontuários.</p>
             </div>
-
             <div class="pacientes-page">
                 <div class="controls-bar card mb-4">
                     <div class="row g-3 align-items-end">
@@ -392,24 +343,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                         </div>
                     </div>
                 </div>
-
                 <div class="pacientes-list card">
                     <h2 class="list-title">Lista de Pacientes</h2>
                     <div id="lista-pacientes">
                         <?php
                         $sql = "SELECT id, nome, dtnascimento, email, cpf, telefone, tipo_paciente, status FROM pacientes ORDER BY nome ASC";
                         $result = mysqli_query($conn, $sql);
-
                         if ($result && mysqli_num_rows($result) > 0):
                             echo '<table class="table table-striped table-hover mt-3"><thead class="table-light"><tr><th>Nome</th><th>Data de Nascimento</th><th>E-mail</th><th>CPF</th><th>Telefone</th><th>Tipo</th><th>Status</th><th class="th-acoes">Ações</th></tr></thead><tbody>';
                             while ($row = mysqli_fetch_assoc($result)):
                                 $dtnascimentoExibicao = (!empty($row['dtnascimento']) && $row['dtnascimento'] !== '0000-00-00')
                                     ? date('d/m/Y', strtotime($row['dtnascimento']))
                                     : '-';
-
                                 $tipoBadgeClass = getTipoBadgeClass($row['tipo_paciente']);
                                 $statusBadgeClass = getStatusBadgeClass($row['status']);
-
                                 echo '<tr>';
                                 echo '<td>' . htmlspecialchars($row['nome'], ENT_QUOTES, 'UTF-8') . '</td>';
                                 echo '<td>' . htmlspecialchars($dtnascimentoExibicao, ENT_QUOTES, 'UTF-8') . '</td>';
@@ -440,7 +387,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
             </div>
         </div>
     </div>
-
     <div class="modal fade" id="pacienteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -495,7 +441,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
             </div>
         </div>
     </div>
-
     <div class="modal fade" id="editarPacienteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -553,7 +498,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
             </div>
         </div>
     </div>
-
     <div class="modal fade" id="excluirPacienteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -571,7 +515,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
             </div>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js  "></script>
     <script src="/portal-repo-og/js/script.js"></script>
     <script>
@@ -581,14 +524,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                 .then(html => {
                     const container = document.getElementById(containerId);
                     if (container) container.innerHTML = html;
+                    
+                    if (containerId === 'sidebar-container' && typeof setActiveSidebarLink === 'function') {
+                        setTimeout(() => setActiveSidebarLink(), 50);
+                    }
                 })
                 .catch(() => {});
         }
-
         function carregarListaComFiltros() {
             const termoBusca = document.getElementById('buscaPaciente').value.trim();
             const tipoFiltro = document.getElementById('filtroStatus').value;
-
             let url = 'paciente.php?action=load_list';
             if (termoBusca) {
                 url += '&search=' + encodeURIComponent(termoBusca);
@@ -596,7 +541,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
             if (tipoFiltro) {
                 url += '&tipo_paciente=' + encodeURIComponent(tipoFiltro);
             }
-
             fetch(url)
                 .then(response => response.text())
                 .then(html => {
@@ -606,7 +550,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                     document.getElementById('lista-pacientes').innerHTML = '<p class="text-danger">Erro ao carregar a lista.</p>';
                 });
         }
-
         function recarregarListaPacientes() {
             fetch('paciente.php?action=load_list')
                 .then(response => response.text())
@@ -617,7 +560,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                     document.getElementById('lista-pacientes').innerHTML = '<p class="text-danger">Erro ao carregar a lista de pacientes.</p>';
                 });
         }
-
         function mascaraCPF(valor) {
             let digits = valor.replace(/\D/g, '').substring(0, 11);
             return digits
@@ -625,7 +567,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                 .replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
                 .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4');
         }
-
         function carregarDadosEdicao(id) {
             fetch(`paciente.php?action=get&id=${encodeURIComponent(id)}`)
                 .then(response => response.json())
@@ -647,7 +588,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                     document.getElementById('edit_telefone').value = data.telefone;
                     document.getElementById('edit_tipo_paciente').value = data.tipo_paciente;
                     document.getElementById('edit_status').value = data.status;
-
                     const modal = new bootstrap.Modal(document.getElementById("editarPacienteModal"));
                     modal.show();
                 })
@@ -660,11 +600,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                     });
                 });
         }
-
         document.addEventListener('input', function(e) {
             const el = e.target;
             let valorOriginal = el.value;
-
             if (el.matches('#cpf, #edit_cpf')) {
                 let valorMascarado = mascaraCPF(valorOriginal);
                 if (valorOriginal !== valorMascarado) {
@@ -677,7 +615,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                 let valor = e.target.value;
                 let digits = valor.replace(/\D/g, '');
                 if (digits.length > 11) digits = digits.substring(0, 11);
-
                 let masked = '';
                 if (digits.length <= 2) {
                     masked = digits;
@@ -688,7 +625,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                 } else {
                     masked = digits.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
                 }
-
                 if (valor !== masked) {
                     const start = e.target.selectionStart;
                     const diff = masked.length - valor.length;
@@ -697,26 +633,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                 }
             }
         });
-
         document.addEventListener('keydown', function(e) {
             const el = e.target;
             if (el.matches('#cpf, #telefone, #edit_cpf, #edit_telefone')) {
                 const key = e.key;
                 const isControlKey = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter', 'Home', 'End'].includes(key);
                 let isValid = false;
-
                 if (el.matches('#cpf, #edit_cpf')) {
                     isValid = /^\d$/.test(key);
                 } else if (el.matches('#telefone, #edit_telefone')) {
                     isValid = /^\d$/.test(key);
                 }
-
                 if (!isValid && !isControlKey) {
                     e.preventDefault();
                 }
             }
         });
-
         document.addEventListener('paste', function(e) {
             if (e.target.matches('#telefone, #edit_telefone')) {
                 setTimeout(() => {
@@ -730,39 +662,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                 }, 10);
             }
         });
-
         document.addEventListener("DOMContentLoaded", function() {
             loadTemplate('/portal-repo-og/templates/header.php', 'header-container');
             loadTemplate('/portal-repo-og/templates/sidebar.php', 'sidebar-container');
-
             const campoBusca = document.getElementById('buscaPaciente');
             const selectFiltro = document.getElementById('filtroStatus');
-
             if (campoBusca) {
                 campoBusca.addEventListener('input', carregarListaComFiltros);
             }
             if (selectFiltro) {
                 selectFiltro.addEventListener('change', carregarListaComFiltros);
             }
-
             carregarListaComFiltros();
-
             const formPaciente = document.getElementById("formPaciente");
             const pacienteModalElement = document.getElementById("pacienteModal");
-
             if (formPaciente) {
                 formPaciente.addEventListener("submit", function(e) {
                     e.preventDefault();
-
                     const btn = formPaciente.querySelector('[type="submit"]');
                     if (!btn || btn.disabled) return;
-
                     btn.disabled = true;
                     const originalText = btn.innerHTML;
                     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
-
                     const formData = new FormData(formPaciente);
-
                     fetch('paciente.php', {
                             method: "POST",
                             body: formData,
@@ -777,7 +699,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                                 if (modal) modal.hide();
                                 formPaciente.reset();
                                 recarregarListaPacientes();
-
                                 Swal.fire({
                                     icon: 'success',
                                     title: 'Sucesso!',
@@ -811,24 +732,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                         });
                 });
             }
-
             const formEditarPaciente = document.getElementById("formEditarPaciente");
             const editarPacienteModalElement = document.getElementById("editarPacienteModal");
-
             if (formEditarPaciente) {
                 formEditarPaciente.addEventListener("submit", function(e) {
                     e.preventDefault();
-
                     const btn = formEditarPaciente.querySelector('[type="submit"]');
                     if (!btn || btn.disabled) return;
-
                     btn.disabled = true;
                     const originalText = btn.innerHTML;
                     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
-
                     const formData = new FormData(formEditarPaciente);
                     formData.append('action', 'edit');
-
                     fetch('paciente.php', {
                             method: "POST",
                             body: formData,
@@ -842,7 +757,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                                 const modal = bootstrap.Modal.getInstance(editarPacienteModalElement);
                                 if (modal) modal.hide();
                                 recarregarListaPacientes();
-
                                 Swal.fire({
                                     icon: 'success',
                                     title: 'Sucesso!',
@@ -876,9 +790,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                         });
                 });
             }
-
             let pacienteParaExcluirId = null;
-
             document.addEventListener('click', function(e) {
                 if (e.target.closest('.btn-editar')) {
                     const btn = e.target.closest('.btn-editar');
@@ -899,7 +811,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                     }
                 }
             });
-
             document.getElementById('confirmarExclusaoBtn').addEventListener('click', function() {
                 if (pacienteParaExcluirId) {
                     fetch('paciente.php', {
@@ -915,7 +826,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                                 const modal = bootstrap.Modal.getInstance(document.getElementById("excluirPacienteModal"));
                                 if (modal) modal.hide();
                                 recarregarListaPacientes();
-
                                 Swal.fire({
                                     icon: 'success',
                                     title: 'Sucesso!',
@@ -941,11 +851,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                         });
                 }
             });
-
             function attachMenuToggle() {
                 const btn = document.getElementById('menu-toggle');
                 const sidebar = document.getElementById('sidebar');
-
                 if (btn && sidebar) {
                     btn.onclick = null;
                     btn.onclick = () => {
@@ -955,10 +863,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                     setTimeout(attachMenuToggle, 300);
                 }
             }
-
             attachMenuToggle();
         });
     </script>
 </body>
-
 </html>

@@ -1,4 +1,3 @@
-<!-- header.php -->
 <header class="header">
   <button id="menu-toggle" class="menu-toggle-btn" aria-label="Abrir e fechar menu">
     <i class="fa-solid fa-bars"></i>

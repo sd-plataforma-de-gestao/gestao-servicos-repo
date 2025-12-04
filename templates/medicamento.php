@@ -7,14 +7,12 @@ if (!isset($_SESSION['farmaceutico_id'])) {
 include(__DIR__ . '/../config/database.php');
 error_reporting(E_ALL);
 require_once("../config/database.php");
-
 if (isset($_GET['action']) && $_GET['action'] === 'get' && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
     $stmt = $conn->prepare("SELECT id, nome, principio_ativo, dosagem, laboratorio, tipo, numero_lote, data_validade, quantidade, preco, descricao, requer_receita, condicao_armazenamento FROM medicamentos WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $result = $stmt->get_result();
-
     if ($result && $result->num_rows === 1) {
         $medicamento = $result->fetch_assoc();
         header('Content-Type: application/json');
@@ -26,10 +24,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'get' && isset($_GET['id'])) {
     $stmt->close();
     exit;
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'edit') {
     $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-
     $id = (int)($_POST['id'] ?? 0);
     $nome = trim($_POST['nome'] ?? '');
     $principio_ativo = trim($_POST['principio_ativo'] ?? '');
@@ -44,7 +40,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $descricao = trim($_POST['descricao'] ?? '');
     $requer_receita = $_POST['requer_receita'] ?? 'Não';
     $condicao_armazenamento = $_POST['condicao_armazenamento'] ?? null;
-
     if ($id <= 0 || empty($nome) || empty($principio_ativo) || empty($dosagem) || empty($laboratorio) || empty($tipo) || empty($numero_lote) || empty($data_validade)) {
         if ($isAjax) {
             header('Content-Type: text/plain');
@@ -54,7 +49,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
         exit;
     }
-
     $stmt = $conn->prepare("UPDATE medicamentos SET nome=?, principio_ativo=?, dosagem=?, laboratorio=?, tipo=?, numero_lote=?, data_validade=?, quantidade=?, preco=?, descricao=?, requer_receita=?, condicao_armazenamento=? WHERE id=?");
     if (!$stmt) {
         if ($isAjax) {
@@ -65,9 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
         exit;
     }
-
     $stmt->bind_param("sssssssiidssi", $nome, $principio_ativo, $dosagem, $laboratorio, $tipo, $numero_lote, $data_validade, $quantidade, $preco, $descricao, $requer_receita, $condicao_armazenamento, $id);
-
     if ($stmt->execute()) {
         if ($isAjax) {
             header('Content-Type: text/plain');
@@ -83,22 +75,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             header("Location: medicamento.php?error=Erro ao atualizar: " . $stmt->error);
         }
     }
-
     $stmt->close();
     exit;
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete' && isset($_POST['id'])) {
     $id = (int)$_POST['id'];
-
     if ($id <= 0) {
         echo "error: ID inválido.";
         exit;
     }
-
     $stmt = $conn->prepare("DELETE FROM medicamentos WHERE id = ?");
     $stmt->bind_param("i", $id);
-
     if ($stmt->execute()) {
         if ($stmt->affected_rows > 0) {
             echo "success_delete";
@@ -108,11 +95,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     } else {
         echo "error: " . $stmt->error;
     }
-
     $stmt->close();
     exit;
 }
-
 if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     $where = [];
     $params = [];
@@ -185,7 +170,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     $stmt->close();
     exit;
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
     $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
     $nome = trim($_POST['nome'] ?? '');
@@ -201,7 +185,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
     $descricao = trim($_POST['descricao'] ?? '');
     $requer_receita = $_POST['requer_receita'] ?? 'Não';
     $condicao_armazenamento = $_POST['condicao_armazenamento'] ?? null;
-
     if (empty($nome) || empty($principio_ativo) || empty($dosagem) || empty($laboratorio) || empty($tipo) || empty($numero_lote) || empty($data_validade)) {
         if ($isAjax) {
             header('Content-Type: text/plain');
@@ -211,11 +194,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
         }
         exit;
     }
-
     $stmt = $conn->prepare("INSERT INTO medicamentos (
         nome, principio_ativo, dosagem, laboratorio, tipo, numero_lote, data_validade, quantidade, preco, descricao, requer_receita, condicao_armazenamento
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
     if (!$stmt) {
         if ($isAjax) {
             header('Content-Type: text/plain');
@@ -225,7 +206,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
         }
         exit;
     }
-
     $stmt->bind_param(
         "sssssssiidss",
         $nome,
@@ -241,7 +221,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
         $requer_receita,
         $condicao_armazenamento
     );
-
     if ($stmt->execute()) {
         if ($isAjax) {
             header('Content-Type: text/plain');
@@ -257,7 +236,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
             header("Location: medicamento.php?error=Erro ao salvar: " . $stmt->error);
         }
     }
-
     $stmt->close();
     exit;
 }
@@ -439,7 +417,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
             </div>
         </div>
     </div>
-
     <div class="modal fade" id="editarMedicamentoModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -526,7 +503,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
             </div>
         </div>
     </div>
-
     <div class="modal fade" id="excluirMedicamentoModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -544,7 +520,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
             </div>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js "></script>
     <script src="/portal-repo-og/js/script.js"></script>
     <script src="/portal-repo-og/js/medicamento.js"></script>
@@ -555,10 +530,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                 .then(html => {
                     const container = document.getElementById(containerId);
                     if (container) container.innerHTML = html;
+                    
+                    if (containerId === 'sidebar-container' && typeof setActiveSidebarLink === 'function') {
+                        setTimeout(() => setActiveSidebarLink(), 50);
+                    }
                 })
                 .catch(() => {});
         }
-
         function carregarListaComFiltros() {
             const busca = document.getElementById('buscaMedicamento').value.trim();
             const filtro = document.getElementById('filtroStatus').value;
@@ -574,25 +552,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                     document.getElementById('lista-pacientes').innerHTML = '<p class="text-danger">Erro ao carregar a lista.</p>';
                 });
         }
-
         document.addEventListener('DOMContentLoaded', function() {
             loadTemplate('/portal-repo-og/templates/header.php', 'header-container');
             loadTemplate('/portal-repo-og/templates/sidebar.php', 'sidebar-container');
-
             const campoBusca = document.getElementById('buscaMedicamento');
             const selectFiltro = document.getElementById('filtroStatus');
             const formMedicamento = document.getElementById("formMedicamento");
             const medicamentoModalElement = document.getElementById("medicamentoModal");
-
             if (campoBusca) {
                 campoBusca.addEventListener('input', carregarListaComFiltros);
             }
             if (selectFiltro) {
                 selectFiltro.addEventListener('change', carregarListaComFiltros);
             }
-
             carregarListaComFiltros();
-
             if (formMedicamento) {
                 formMedicamento.addEventListener("submit", function(e) {
                     e.preventDefault();
@@ -648,14 +621,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                     });
                 });
             }
-
             function atualizarListaMedicamentos() {
                 carregarListaComFiltros();
             }
-
             const formEditarMedicamento = document.getElementById("formEditarMedicamento");
             const editarMedicamentoModalElement = document.getElementById("editarMedicamentoModal");
-
             if (formEditarMedicamento) {
                 formEditarMedicamento.addEventListener("submit", function(e) {
                     e.preventDefault();
@@ -666,7 +636,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
                     const formData = new FormData(formEditarMedicamento);
                     formData.append('action', 'edit');
-
                     fetch('medicamento.php', {
                         method: "POST",
                         body: formData,
@@ -712,7 +681,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                     });
                 });
             }
-
             function carregarDadosEdicao(id) {
                 fetch(`medicamento.php?action=get&id=${encodeURIComponent(id)}`)
                     .then(response => response.json())
@@ -739,7 +707,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                         document.getElementById('edit_descricao').value = data.descricao;
                         document.getElementById('edit_requer_receita').value = data.requer_receita;
                         document.getElementById('edit_condicao_armazenamento').value = data.condicao_armazenamento;
-
                         const modal = new bootstrap.Modal(editarMedicamentoModalElement);
                         modal.show();
                     })
@@ -752,10 +719,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                         });
                     });
             }
-
             let medicamentoParaExcluirId = null;
             const excluirMedicamentoModalElement = document.getElementById("excluirMedicamentoModal");
-
             document.addEventListener('click', function(e) {
                 if (e.target.closest('.btn-editar')) {
                     const btn = e.target.closest('.btn-editar');
@@ -776,7 +741,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                     }
                 }
             });
-
             document.getElementById('confirmarExclusaoBtn').addEventListener('click', function() {
                 if (medicamentoParaExcluirId) {
                     fetch('medicamento.php', {
@@ -816,7 +780,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                 }
             });
         });
-
         function attachMenuToggle() {
           const btn = document.getElementById('menu-toggle');
           const sidebar = document.getElementById('sidebar');
@@ -829,7 +792,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
             setTimeout(attachMenuToggle, 300);
           }
         }
-
         document.addEventListener('DOMContentLoaded', () => {
           attachMenuToggle();
         });

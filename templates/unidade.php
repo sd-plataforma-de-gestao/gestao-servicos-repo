@@ -37,11 +37,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
                     <?php endif; ?>
                 </div>
                 <div class="unidade-footer">
-                    <!-- Botão VER com classe personalizada -->
                     <button class="btn btn-sm btn-ver-custom me-1" data-id="<?= $row['id'] ?>">
                         <i class="fa fa-eye"></i> Ver
                     </button>
-                    <!-- Botão EDITAR com classe personalizada -->
                     <button class="btn btn-sm btn-editar-custom me-1" data-id="<?= $row['id'] ?>">
                         <i class="fa fa-edit"></i> Editar
                     </button>
@@ -55,7 +53,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_list') {
     else:
         echo '<p class="text-muted text-center py-5">Nenhuma unidade cadastrada.</p>';
     endif;
-    exit;
+    exit; 
 }
 
 if (isset($_GET['action']) && $_GET['action'] === 'get_unidade' && isset($_GET['id'])) {
@@ -99,7 +97,7 @@ if (isset($_POST['salvar'])) {
             exit; 
         } else {
             echo "<div class='alert alert-danger mx-4 my-3' role='alert'>$error_message</div>";
-            exit;
+            exit; 
         }
     }
 
@@ -193,7 +191,7 @@ if (isset($_POST['salvar'])) {
             exit; 
         } else {
             header("Location: " . $_SERVER['PHP_SELF']);
-            exit;
+            exit; 
         }
     } else {
         $error_message = "Erro ao salvar: " . $stmt->error;
@@ -217,13 +215,14 @@ if (isset($_POST['action']) && $_POST['action'] === 'excluir' && isset($_POST['i
     $stmt->bind_param("i", $id);
 
     if ($stmt->execute()) {
-        echo json_encode(['success' => true, 'message' => 'Unidade excluída com sucesso!']);
+        echo json_encode(['success' => true, 'message' => 'Unidade excluída com sucesso!']); // Resposta JSON
     } else {
-        echo json_encode(['success' => false, 'message' => $stmt->error]);
+        echo json_encode(['success' => false, 'message' => $stmt->error]); // Resposta JSON com erro
     }
     $stmt->close();
     exit;
 }
+
 if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
     $sql_total = "SELECT COUNT(*) as total FROM unidades";
     $result_total = mysqli_query($conn, $sql_total);
@@ -249,6 +248,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
     header('Content-Type: application/json');
     echo json_encode($stats);
     exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -258,11 +258,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gestão de Unidades</title>
   <link rel="icon" href="/portal-repo-og/assets/favicon.png" type="image/png">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css  " rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css  " />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css  ">
       
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11  "></script>
 
   <link rel="stylesheet" href="/portal-repo-og/styles/global.css">
   <link rel="stylesheet" href="/portal-repo-og/styles/header.css">
@@ -468,8 +468,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- Mantém script.js e sidebar.js -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js  "></script>
   <script src="/portal-repo-og/js/script.js"></script>
   <script src="/portal-repo-og/js/unidade.js"></script>
   <script src="/portal-repo-og/js/sidebar.js"></script>
@@ -480,6 +479,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
             .then(html => {
                 const container = document.getElementById(containerId);
                 if (container) container.innerHTML = html;
+                
+                if (containerId === 'sidebar-container' && typeof setActiveSidebarLink === 'function') {
+                    setTimeout(() => setActiveSidebarLink(), 50);
+                }
             })
             .catch(err => console.error('Erro ao carregar template:', err));
     }
@@ -688,10 +691,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
                     method: 'POST',
                     body: formData,
                     headers: {
-                        "X-Requested-With": "XMLHttpRequest" 
+                        "X-Requested-With": "XMLHttpRequest"
                     }
                 })
-                .then(response => response.json()) 
+                .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         bootstrap.Modal.getInstance(document.getElementById('unidadeModal'))?.hide();
@@ -746,7 +749,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_stats') {
 
     document.addEventListener('DOMContentLoaded', () => {
       attachMenuToggle();
-    });
+    });
   </script>
 </body>
 </html>

@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeTooltips();
     initializeNavigation();
     loadDashboardData();
+    setActiveSidebarLink();
 });
 
 function initializeSidebar() {
@@ -342,25 +343,38 @@ function debounce(func, wait) {
 
 function setActiveSidebarLink() {
   const currentPage = window.location.pathname.split("/").pop();
-
+  
+  const pageMap = {
+    'index.php': 'inicio',
+    'atendimento.php': 'atendimento',
+    'historico_atendimento.php': 'historico_atendimento',
+    'paciente.php': 'pacientes',
+    'farmaceutico.php': 'farmaceuticos',
+    'medicamento.php': 'medicamentos',
+    'insights.php': 'relatorios',
+    'unidade.php': 'unidades',
+    'config.php': 'configuracoes'
+  };
+  
+  const targetPage = pageMap[currentPage] || '';
+  
   const sidebarLinks = document.querySelectorAll(".sidebar-link");
-
+  
   sidebarLinks.forEach(link => {
-    const linkPage = link.getAttribute("href").split("/").pop();
-
-    if (linkPage === currentPage) {
+    const linkPage = link.getAttribute("data-page");
+    
+    if (linkPage === targetPage) {
       link.classList.add("active");
     } else {
       link.classList.remove("active");
     }
   });
-
-  
 }
+
 /**
- * @param {string} type
- * @param {string} title
- * @param {string} text
+ * @param {string} type - Tipo de alerta ('success', 'error', 'warning', 'info').
+ * @param {string} title - Título do alerta.
+ * @param {string} text - Mensagem detalhada.
  */
 function showCustomAlert(type, title, text) {
     if (typeof Swal === 'undefined') {

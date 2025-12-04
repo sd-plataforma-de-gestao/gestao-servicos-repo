@@ -7,6 +7,7 @@ if (!isset($_SESSION['farmaceutico_id'])) {
 include(__DIR__ . '/../config/database.php');
 date_default_timezone_set('America/Sao_Paulo');
 
+// Tipos de relatório válidos (sem estoque!)
 $tipos_relatorio = [
     'evolucao_atendimentos' => 'Evolução de Atendimentos',
     'perfil_pacientes'      => 'Perfil dos Pacientes',
@@ -15,20 +16,24 @@ $tipos_relatorio = [
     'status_atendimentos'   => 'Status dos Atendimentos'
 ];
 
+// Filtros
 $periodo = $_GET['periodo'] ?? '30';
 $data_inicio = $_GET['data_inicio'] ?? '';
 $data_fim = $_GET['data_fim'] ?? '';
 $limite = (int)($_GET['limite'] ?? 10);
 $tipo_relatorio = $_GET['tipo_relatorio'] ?? 'evolucao_atendimentos';
 
+// Converter período em datas
 if ($periodo !== 'custom') {
     $data_inicio = date('Y-m-d', strtotime("-{$periodo} days"));
     $data_fim = date('Y-m-d');
 } else {
+    // Formato brasileiro → SQL
     $data_inicio = !empty($_GET['data_inicio']) ? DateTime::createFromFormat('d/m/Y', $_GET['data_inicio'])?->format('Y-m-d') : '';
     $data_fim = !empty($_GET['data_fim']) ? DateTime::createFromFormat('d/m/Y', $_GET['data_fim'])?->format('Y-m-d') : date('Y-m-d');
 }
 
+// Funções de consulta — SEM medicamentos
 function buscarEvolucaoAtendimentos($conn, $data_inicio, $data_fim) {
     $sql = "
         SELECT DATE(a.criado_em) as data, COUNT(*) as total
@@ -143,6 +148,7 @@ function buscarStatusAtendimentos($conn, $data_inicio, $data_fim) {
     return $dados;
 }
 
+// Gerar relatório selecionado
 $dados_relatorio = [];
 switch ($tipo_relatorio) {
     case 'evolucao_atendimentos':
@@ -624,7 +630,9 @@ $data_geracao = date('d/m/Y H:i:s');
     </div>
 
     <script>
+        // Para personalização futura (ex: máscara de data)
         document.addEventListener('DOMContentLoaded', () => {
+            // Pode adicionar máscara de data aqui com um plugin leve, se quiser
         });
     </script>
 
